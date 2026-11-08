@@ -68,6 +68,40 @@ def test_valid_physiotherapist_registration():
     assert data.years_experience == 3
 
 
+def test_physiotherapist_rejects_whitespace_registration_number():
+    with pytest.raises(ValidationError):
+        PhysiotherapistRegister(
+            full_name="Test Physiotherapist",
+            email="physio@example.com",
+            password="Physio@123",
+            qualification="BPT",
+            registration_number="     ",
+        )
+
+
+def test_physiotherapist_rejects_empty_registration_number():
+    with pytest.raises(ValidationError):
+        PhysiotherapistRegister(
+            full_name="Test Physiotherapist",
+            email="physio@example.com",
+            password="Physio@123",
+            qualification="BPT",
+            registration_number="",
+        )
+
+
+def test_physiotherapist_normalizes_registration_number():
+    data = PhysiotherapistRegister(
+        full_name="Test Physiotherapist",
+        email="physio@example.com",
+        password="Physio@123",
+        qualification="BPT",
+        registration_number="  mh-pune-12345  ",
+    )
+
+    assert data.registration_number == "MH-PUNE-12345"
+
+
 def test_physiotherapist_rejects_negative_experience():
     with pytest.raises(ValidationError):
         PhysiotherapistRegister(

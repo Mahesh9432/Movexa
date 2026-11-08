@@ -48,7 +48,12 @@ class PhysiotherapistRegister(BaseModel):
     @field_validator("registration_number")
     @classmethod
     def normalize_registration_number(cls, value: str) -> str:
-        return value.strip().upper()
+        normalized_value = value.strip().upper()
+
+        if not normalized_value:
+            raise ValueError("Registration number cannot be empty.")
+
+        return normalized_value
 
 
 class LoginRequest(BaseModel):
