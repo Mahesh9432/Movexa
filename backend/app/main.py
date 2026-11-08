@@ -2,6 +2,7 @@
 from fastapi import FastAPI
 
 from app.api.auth import router as auth_router
+from app.api.profiles import router as profiles_router
 
 
 app = FastAPI(
@@ -10,7 +11,9 @@ app = FastAPI(
     version="1.0.0",
 )
 
+# Register API routers
 app.include_router(auth_router)
+app.include_router(profiles_router)
 
 
 @app.get("/")
