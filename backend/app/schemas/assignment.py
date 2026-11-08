@@ -9,8 +9,9 @@ AssignmentStatus = Literal["ACTIVE", "ENDED"]
 
 
 class AssignmentCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     patient_id: UUID
-    physiotherapist_id: UUID
 
 
 class AssignmentEnd(BaseModel):

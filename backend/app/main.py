@@ -1,8 +1,8 @@
-
-from fastapi import FastAPI
+﻿from fastapi import FastAPI
 
 from app.api.auth import router as auth_router
 from app.api.profiles import router as profiles_router
+from app.api.assignments import router as assignments_router
 
 
 app = FastAPI(
@@ -14,6 +14,7 @@ app = FastAPI(
 # Register API routers
 app.include_router(auth_router)
 app.include_router(profiles_router)
+app.include_router(assignments_router)
 
 
 @app.get("/")
