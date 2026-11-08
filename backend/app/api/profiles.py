@@ -27,9 +27,20 @@ router = APIRouter(prefix="/api", tags=["Profiles"])
 
 # RESPONSE SCHEMAS
 
+class AssignedPhysiotherapistResponse(BaseModel):
+    id: str
+    full_name: str
+    qualification: str
+    specialization: str | None
+    clinic_name: str | None
+    phone_number: str | None
+    assignment_status: str
+
+
 class PatientProfileResponse(BaseModel):
     user: UserResponse
     profile: PatientResponse
+    assigned_physiotherapist: AssignedPhysiotherapistResponse | None = None
 
 
 class PhysiotherapistProfileResponse(BaseModel):
