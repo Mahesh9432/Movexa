@@ -1,14 +1,20 @@
 ﻿import pytest
 
 from app.schemas.rep_metric import RepMetricsBatchCreate
+from app.services import ai_metrics_adapter
 from app.services.ai_metrics_adapter import (
     AIEngineIntegrationError,
     adapt_ai_result,
+    save_ai_metrics,
+)
+from app.services.rep_metric_service import (
+    DuplicateRepMetricError,
+    InvalidMetricsSessionError,
 )
 
 
-def test_adapt_valid_ai_repetition_results():
-    ai_result = {
+def valid_ai_result():
+    return {
         "repetitions_data": [
             {
                 "rep_number": 1,
@@ -33,7 +39,9 @@ def test_adapt_valid_ai_repetition_results():
         ]
     }
 
-    result = adapt_ai_result(ai_result)
+
+def test_adapt_valid_ai_repetition_results():
+    result = adapt_ai_result(valid_ai_result())
 
     assert isinstance(result, RepMetricsBatchCreate)
     assert len(result.repetitions_data) == 2
@@ -88,12 +96,7 @@ def test_rejects_duplicate_repetition_numbers():
         match="backend validation",
     ):
         adapt_ai_result(
-            {
-                "repetitions_data": [
-                    repetition,
-                    repetition,
-                ]
-            }
+            {"repetitions_data": [repetition, repetition]}
         )
 
 
@@ -131,4 +134,109 @@ def test_rejects_rom_for_unable_to_assess():
                     }
                 ]
             }
+        )
+
+
+def test_save_ai_metrics_validates_and_persists(
+    monkeypatch,
+):
+    db = object()
+    session = object()
+    expected_records = [object(), object()]
+    captured = {}
+
+    def fake_save(db_arg, session_arg, metrics_data):
+        captured["db"] = db_arg
+        captured["session"] = session_arg
+        captured["metrics_data"] = metrics_data
+        return expected_records
+
+    monkeypatch.setattr(
+        ai_metrics_adapter,
+        "save_rep_metrics",
+        fake_save,
+    )
+
+    result = save_ai_metrics(db, session, valid_ai_result())
+
+    assert result == expected_records
+    assert captured["db"] is db
+    assert captured["session"] is session
+    assert isinstance(
+        captured["metrics_data"],
+        RepMetricsBatchCreate,
+    )
+    assert len(captured["metrics_data"].repetitions_data) == 2
+
+
+def test_save_ai_metrics_rejects_aggregate_before_persistence(
+    monkeypatch,
+):
+    called = False
+
+    def fake_save(*args):
+        nonlocal called
+        called = True
+
+    monkeypatch.setattr(
+        ai_metrics_adapter,
+        "save_rep_metrics",
+        fake_save,
+    )
+
+    with pytest.raises(AIEngineIntegrationError):
+        save_ai_metrics(
+            object(),
+            object(),
+            {"repetitions": 10, "knee_angle": 90},
+        )
+
+    assert called is False
+
+
+def test_save_ai_metrics_propagates_duplicate_error(
+    monkeypatch,
+):
+    def fake_save(*args):
+        raise DuplicateRepMetricError("Duplicate repetition")
+
+    monkeypatch.setattr(
+        ai_metrics_adapter,
+        "save_rep_metrics",
+        fake_save,
+    )
+
+    with pytest.raises(
+        DuplicateRepMetricError,
+        match="Duplicate repetition",
+    ):
+        save_ai_metrics(
+            object(),
+            object(),
+            valid_ai_result(),
+        )
+
+
+def test_save_ai_metrics_propagates_invalid_session_error(
+    monkeypatch,
+):
+    def fake_save(*args):
+        raise InvalidMetricsSessionError(
+            "Session is not in progress"
+        )
+
+    monkeypatch.setattr(
+        ai_metrics_adapter,
+        "save_rep_metrics",
+        fake_save,
+    )
+
+    with pytest.raises(
+        InvalidMetricsSessionError,
+        match="Session is not in progress",
+    ):
+        save_ai_metrics(
+            object(),
+            object(),
+            valid_ai_result(),
         )

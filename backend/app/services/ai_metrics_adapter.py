@@ -2,8 +2,12 @@
 from typing import Any
 
 from pydantic import ValidationError
+from sqlalchemy.orm import Session
 
+from app.models.rehab_session import RehabSession
+from app.models.rep_metric import RepMetric
 from app.schemas.rep_metric import RepMetricsBatchCreate
+from app.services.rep_metric_service import save_rep_metrics
 
 
 class AIEngineIntegrationError(ValueError):
@@ -14,23 +18,7 @@ def adapt_ai_result(
     ai_result: Mapping[str, Any],
 ) -> RepMetricsBatchCreate:
     """
-    Validate per-repetition AI output against the existing backend contract.
-
-    Expected input:
-    {
-        "repetitions_data": [
-            {
-                "rep_number": 1,
-                "assessment_status": "ASSESSED",
-                "range_of_motion": 85.5,
-                "confidence": 0.92,
-                "movement_data": {"knee_angle": 85.5},
-                "compensation_flags": {},
-                "detected_issues": [],
-                "feedback": "Good movement"
-            }
-        ]
-    }
+    Validate genuine per-repetition AI output against the backend contract.
 
     Aggregate session summaries are intentionally not accepted.
     """
@@ -62,3 +50,21 @@ def adapt_ai_result(
         raise AIEngineIntegrationError(
             f"AI repetition data failed backend validation: {exc}"
         ) from exc
+
+
+def save_ai_metrics(
+    db: Session,
+    session: RehabSession,
+    ai_result: Mapping[str, Any],
+) -> list[RepMetric]:
+    """
+    Validate and persist per-repetition AI results.
+
+    Uses the existing repetition-metric persistence service so that
+    session-status checks, duplicate detection and transaction handling
+    remain consistent across the application.
+    """
+
+    metrics_data = adapt_ai_result(ai_result)
+
+    return save_rep_metrics(db, session, metrics_data)
