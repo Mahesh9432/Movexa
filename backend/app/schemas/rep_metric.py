@@ -1,7 +1,12 @@
 from typing import Any, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    model_validator,
+)
 
 
 AssessmentStatus = Literal["ASSESSED", "UNABLE_TO_ASSESS"]
@@ -26,7 +31,8 @@ class RepMetricCreate(BaseModel):
             and self.range_of_motion is not None
         ):
             raise ValueError(
-                "range_of_motion must be null when assessment is UNABLE_TO_ASSESS"
+                "range_of_motion must be null when assessment is "
+                "UNABLE_TO_ASSESS"
             )
 
         return self
@@ -39,7 +45,30 @@ class RepMetricsBatchCreate(BaseModel):
 
     @model_validator(mode="after")
     def validate_unique_repetitions(self):
-        numbers = [item.rep_number for item in self.repetitions_data]
+        numbers = [
+            item.rep_number for item in self.repetitions_data
+        ]
+
+        if len(numbers) != len(set(numbers)):
+            raise ValueError(
+                "Each repetition number must be unique within the request"
+            )
+
+        return self
+
+
+class OfflineSessionSyncRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    repetitions_data: list[RepMetricCreate] = Field(
+        default_factory=list
+    )
+
+    @model_validator(mode="after")
+    def validate_unique_repetitions(self):
+        numbers = [
+            item.rep_number for item in self.repetitions_data
+        ]
 
         if len(numbers) != len(set(numbers)):
             raise ValueError(

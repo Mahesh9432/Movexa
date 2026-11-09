@@ -219,7 +219,7 @@ def test_finish_session_rejects_completion_before_start(db):
 
 
 def test_mark_session_synced_sets_timestamp_once(db):
-    session = SimpleNamespace(synced_at=None)
+    session = SimpleNamespace(status="COMPLETED", synced_at=None)
     query = MagicMock()
     query.filter.return_value.first.return_value = session
     db.query.return_value = query
@@ -232,7 +232,7 @@ def test_mark_session_synced_sets_timestamp_once(db):
 
 def test_mark_session_synced_does_not_overwrite_existing_timestamp(db):
     original_timestamp = datetime.now(timezone.utc)
-    session = SimpleNamespace(synced_at=original_timestamp)
+    session = SimpleNamespace(status="COMPLETED", synced_at=original_timestamp)
     query = MagicMock()
     query.filter.return_value.first.return_value = session
     db.query.return_value = query
@@ -240,4 +240,20 @@ def test_mark_session_synced_does_not_overwrite_existing_timestamp(db):
     result = mark_session_synced(db, uuid4())
 
     assert result.synced_at == original_timestamp
+    db.commit.assert_not_called()
+
+
+def test_mark_session_synced_rejects_in_progress_session(db):
+    from app.services.rehab_session_service import (
+        InvalidSessionOperationError,
+    )
+
+    session = SimpleNamespace(status="IN_PROGRESS", synced_at=None)
+    query = MagicMock()
+    query.filter.return_value.first.return_value = session
+    db.query.return_value = query
+
+    with pytest.raises(InvalidSessionOperationError):
+        mark_session_synced(db, uuid4())
+
     db.commit.assert_not_called()
