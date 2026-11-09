@@ -196,3 +196,148 @@ def test_patient_progress_filters_sessions_by_prescription_owner(
         "get_patient_progress",
     )
     _assert_owner_filter(queries, physiotherapist_id)
+
+def test_dashboard_excludes_sessions_from_previous_physiotherapist(
+    monkeypatch,
+):
+    from datetime import datetime, timezone
+    from uuid import uuid4
+
+    current_physio_id = uuid4()
+    previous_physio_id = uuid4()
+    patient_id = uuid4()
+
+    current_user = MagicMock(id=uuid4())
+    current_physio = MagicMock(
+        id=current_physio_id,
+        verification_status="VERIFIED",
+    )
+
+    assignment = MagicMock(patient_id=patient_id)
+
+    current_prescription = MagicMock(
+        id=uuid4(),
+        patient_id=patient_id,
+        exercise_id=uuid4(),
+        physiotherapist_id=current_physio_id,
+    )
+    previous_prescription = MagicMock(
+        id=uuid4(),
+        patient_id=patient_id,
+        exercise_id=uuid4(),
+        physiotherapist_id=previous_physio_id,
+    )
+
+    now = datetime.now(timezone.utc)
+    current_session = MagicMock(
+        id=uuid4(),
+        patient_id=patient_id,
+        prescription_id=current_prescription.id,
+        status="COMPLETED",
+        started_at=now,
+        completed_at=now,
+        synced_at=now,
+    )
+    previous_session = MagicMock(
+        id=uuid4(),
+        patient_id=patient_id,
+        prescription_id=previous_prescription.id,
+        status="COMPLETED",
+        started_at=now,
+        completed_at=now,
+        synced_at=now,
+    )
+
+    assignment_query = MagicMock()
+    assignment_query.filter.return_value = assignment_query
+    assignment_query.all.return_value = [assignment]
+
+    prescription_query = MagicMock()
+    prescription_query.filter.return_value = prescription_query
+    prescription_query.all.return_value = [current_prescription]
+
+    session_query = MagicMock()
+    session_query.join.return_value = session_query
+    session_query.order_by.return_value = session_query
+    session_filters = []
+
+    def capture_session_filters(*criteria):
+        session_filters.extend(criteria)
+        return session_query
+
+    session_query.filter.side_effect = capture_session_filters
+    session_query.all.return_value = [current_session]
+
+    prescription_lookup_query = MagicMock()
+    prescription_lookup_query.filter.return_value = (
+        prescription_lookup_query
+    )
+    prescription_lookup_query.all.return_value = [current_prescription]
+
+    def query_router(model):
+        if model is PatientTherapistAssignment:
+            return assignment_query
+
+        if model is Prescription:
+            if not hasattr(query_router, "prescription_calls"):
+                query_router.prescription_calls = 0
+            query_router.prescription_calls += 1
+
+            if query_router.prescription_calls == 1:
+                return prescription_query
+            return prescription_lookup_query
+
+        if model is RehabSession:
+            return session_query
+
+        raise AssertionError(f"Unexpected query model: {model}")
+
+    db = MagicMock()
+    db.query.side_effect = query_router
+
+    monkeypatch.setattr(
+        dashboard_service,
+        "_get_physiotherapist",
+        lambda db, user: current_physio,
+    )
+    monkeypatch.setattr(
+        dashboard_service,
+        "_get_metrics_by_session",
+        lambda db, session_ids: {},
+    )
+    monkeypatch.setattr(
+        dashboard_service,
+        "_get_prescription_exercises",
+        lambda db, prescriptions: {},
+    )
+    monkeypatch.setattr(
+        dashboard_service,
+        "_get_exercises",
+        lambda db, exercise_ids: {},
+    )
+
+    result = dashboard_service.get_physiotherapist_dashboard(
+        db,
+        current_user,
+    )
+
+    assert result["summary"]["total_sessions"] == 1
+    assert result["summary"]["completed_sessions"] == 1
+    assert len(result["recent_sessions"]) == 1
+    assert result["recent_sessions"][0]["id"] == current_session.id
+    assert previous_session.id not in [
+        session["id"] for session in result["recent_sessions"]
+    ]
+
+    assert session_query.join.called
+    assert any(
+        getattr(getattr(criteria, "left", None), "name", None)
+        == "physiotherapist_id"
+        and getattr(
+            getattr(criteria, "right", None),
+            "value",
+            None,
+        ) == current_physio_id
+        for criteria in session_filters
+    )
+    assert previous_physio_id != current_physio_id
