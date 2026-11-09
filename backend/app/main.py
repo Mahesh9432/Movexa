@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+﻿from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.auth import router as auth_router
@@ -6,6 +6,8 @@ from app.api.profiles import router as profiles_router
 from app.api.assignments import router as assignments_router
 from app.api.sessions import router as sessions_router
 from app.api.metrics import router as metrics_router
+from app.api.exercises import router as exercises_router
+from app.api.prescriptions import router as prescriptions_router
 
 
 app = FastAPI(
@@ -25,12 +27,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Register API routers
 app.include_router(auth_router)
 app.include_router(profiles_router)
 app.include_router(assignments_router)
 app.include_router(sessions_router)
 app.include_router(metrics_router)
+app.include_router(exercises_router)
+app.include_router(prescriptions_router)
 
 
 @app.get("/")
