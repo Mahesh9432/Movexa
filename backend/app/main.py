@@ -1,4 +1,5 @@
-﻿from fastapi import FastAPI
+﻿
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.auth import router as auth_router
@@ -8,7 +9,7 @@ from app.api.sessions import router as sessions_router
 from app.api.metrics import router as metrics_router
 from app.api.exercises import router as exercises_router
 from app.api.prescriptions import router as prescriptions_router
-
+from app.api.dashboards import router as dashboards_router
 
 app = FastAPI(
     title="Movexa API",
@@ -34,6 +35,7 @@ app.include_router(sessions_router)
 app.include_router(metrics_router)
 app.include_router(exercises_router)
 app.include_router(prescriptions_router)
+app.include_router(dashboards_router)
 
 
 @app.get("/")
