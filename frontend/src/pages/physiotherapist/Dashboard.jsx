@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 export default function PhysioDashboard({ onLogout, onNavigate }) {
@@ -48,14 +47,29 @@ export default function PhysioDashboard({ onLogout, onNavigate }) {
           <nav className="space-y-1.5">
             <button
               onClick={() => onNavigate?.('physio-dashboard')}
-              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-semibold bg-[#EAF1F8] text-[#087F73]"
+              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-semibold bg-[#EAF1F8] text-[#087F73] cursor-pointer"
             >
               <span>📊</span> Dashboard
             </button>
 
             <button
+              onClick={() => onNavigate?.('physio-patients')}
+              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-semibold text-gray-600 hover:bg-gray-50 cursor-pointer"
+            >
+              <span>👥</span> Patients
+            </button>
+
+            {/* Added Prescriptions Navigation Link */}
+            <button
+              onClick={() => onNavigate?.('physio-prescriptions')}
+              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-semibold text-gray-600 hover:bg-gray-50 cursor-pointer"
+            >
+              <span>📋</span> Prescriptions
+            </button>
+
+            <button
               onClick={() => onNavigate?.('physio-profile')}
-              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-semibold text-gray-600 hover:bg-gray-50"
+              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-semibold text-gray-600 hover:bg-gray-50 cursor-pointer"
             >
               <span>👤</span> Profile & Credentials
             </button>
@@ -65,7 +79,7 @@ export default function PhysioDashboard({ onLogout, onNavigate }) {
         <div className="pt-4 border-t border-[#D9E3ED]">
           <button
             onClick={onLogout}
-            className="w-full bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-semibold py-2 rounded-lg"
+            className="w-full bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-semibold py-2 rounded-lg cursor-pointer"
           >
             🚪 Sign Out
           </button>
@@ -86,7 +100,7 @@ export default function PhysioDashboard({ onLogout, onNavigate }) {
 
           <button
             onClick={() => onNavigate?.('physio-profile')}
-            className="flex items-center gap-2.5 border-l border-[#D9E3ED] pl-4"
+            className="flex items-center gap-2.5 border-l border-[#D9E3ED] pl-4 cursor-pointer"
           >
             <span className="w-8 h-8 rounded-full bg-[#087F73] text-white flex items-center justify-center text-xs font-bold">
               MV
@@ -114,7 +128,7 @@ export default function PhysioDashboard({ onLogout, onNavigate }) {
             {stats.map((stat) => (
               <div
                 key={stat.label}
-                className="bg-white border border-[#D9E3ED] rounded-xl p-4 md:p-5"
+                className="bg-white border border-[#D9E3ED] rounded-xl p-4 md:p-5 shadow-xs"
               >
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-gray-500 font-medium">
@@ -130,7 +144,7 @@ export default function PhysioDashboard({ onLogout, onNavigate }) {
           </div>
 
           {/* Patient List */}
-          <section className="bg-white border border-[#D9E3ED] rounded-xl overflow-hidden">
+          <section className="bg-white border border-[#D9E3ED] rounded-xl overflow-hidden shadow-xs">
             <div className="p-5 border-b border-[#D9E3ED] flex justify-between items-center">
               <div>
                 <h2 className="font-bold text-sm text-[#193B62]">
@@ -140,9 +154,12 @@ export default function PhysioDashboard({ onLogout, onNavigate }) {
                   Overview of your current patients
                 </p>
               </div>
-              <span className="text-xs text-[#087F73] font-semibold">
-                12 Patients
-              </span>
+              <button
+                onClick={() => onNavigate?.('physio-patients')}
+                className="text-xs text-[#087F73] font-semibold hover:underline cursor-pointer"
+              >
+                View All Patients →
+              </button>
             </div>
 
             <div className="divide-y divide-[#D9E3ED]">
@@ -186,7 +203,7 @@ export default function PhysioDashboard({ onLogout, onNavigate }) {
           </section>
 
           {/* Upcoming Sessions */}
-          <section className="bg-white border border-[#D9E3ED] rounded-xl p-5">
+          <section className="bg-white border border-[#D9E3ED] rounded-xl p-5 shadow-xs">
             <h2 className="font-bold text-sm text-[#193B62]">
               Today's Sessions
             </h2>

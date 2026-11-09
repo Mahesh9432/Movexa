@@ -3,22 +3,31 @@ import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import PatientDashboard from './pages/patient/Dashboard';
 import PatientProfile from './pages/patient/Profile';
+import PatientExercises from './pages/patient/Exercises';
+import PatientSession from './pages/patient/Session';
+
 import PhysioDashboard from './pages/physiotherapist/Dashboard';
 import PhysioProfile from './pages/physiotherapist/Profile';
+import PhysioPatients from './pages/physiotherapist/Patients';
+import Prescriptions from './pages/physiotherapist/Prescriptions';
 
 const pageNames = {
-  exercises: 'My Exercises',
   library: 'Exercise Library',
-  progress: 'Progress',
   appointments: 'Appointments',
   care: 'Care Team',
 };
 
 export default function App() {
   const [currentView, setCurrentView] = useState('login');
+  const [activePatientName, setActivePatientName] = useState('Sarah Michelle Jenkins');
 
   const handleLogout = () => setCurrentView('login');
-  const handleNavigate = (view) => setCurrentView(view);
+  const handleNavigate = (view, paramName) => {
+    if (paramName) {
+      setActivePatientName(paramName);
+    }
+    setCurrentView(view);
+  };
 
   return (
     <div className="min-h-screen bg-[#F4F7FB]">
@@ -50,12 +59,32 @@ export default function App() {
         <PatientProfile onLogout={handleLogout} onNavigate={handleNavigate} />
       )}
 
+      {currentView === 'exercises' && (
+        <PatientExercises onLogout={handleLogout} onNavigate={handleNavigate} />
+      )}
+
+      {currentView === 'session' && (
+        <PatientSession onLogout={handleLogout} onNavigate={handleNavigate} />
+      )}
+
       {currentView === 'physio-dashboard' && (
         <PhysioDashboard onLogout={handleLogout} onNavigate={handleNavigate} />
       )}
 
       {currentView === 'physio-profile' && (
         <PhysioProfile onLogout={handleLogout} onNavigate={handleNavigate} />
+      )}
+
+      {currentView === 'physio-patients' && (
+        <PhysioPatients onLogout={handleLogout} onNavigate={handleNavigate} />
+      )}
+
+      {currentView === 'physio-prescriptions' && (
+        <Prescriptions 
+          patientName={activePatientName} 
+          onLogout={handleLogout} 
+          onNavigate={handleNavigate} 
+        />
       )}
 
       {pageNames[currentView] && (
@@ -68,7 +97,7 @@ export default function App() {
               This page is currently under development.
             </p>
             <button
-              onClick={() => setCurrentView('dashboard')}
+              onClick={() => setCurrentView('physio-dashboard')}
               className="mt-5 bg-[#087F73] hover:bg-[#06655c] text-white px-5 py-2.5 rounded-lg text-sm font-semibold cursor-pointer"
             >
               Back to Dashboard
