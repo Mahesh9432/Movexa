@@ -174,6 +174,13 @@ while cap.isOpened():
             points[26],
             points[28]
         )
+        # Select knee angle from the more visible leg
+        selected_knee_angle = (
+            left_knee_angle
+            if selected_leg == "LEFT"
+            else right_knee_angle
+        
+        )
             # Calculate trunk angle
         left_shoulder = points[11]
         left_hip = points[23]
@@ -186,12 +193,7 @@ while cap.isOpened():
         if is_confident and selected_knee_angle is not None:
 
             # Smooth angle
-            selected_knee_angle = (
-                left_knee_angle
-                if selected_leg == "LEFT"
-                else right_knee_angle
-            )
-
+           
             smoothed_left_angle = left_angle_smoother.smooth(
                 selected_knee_angle
             )
