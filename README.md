@@ -1,63 +1,173 @@
 # Movexa
 
-### AI-Powered Physiotherapy and Rehabilitation Movement Monitoring
+### AI-Assisted Physiotherapy and Rehabilitation Movement Monitoring
 
-Movexa is a web-based AI-assisted physiotherapy and rehabilitation platform designed to help patients perform prescribed exercises correctly while enabling physiotherapists to monitor movement quality and progress.
+Movexa is a web-based physiotherapy prototype that helps patients perform prescribed exercises with browser-based pose tracking while giving physiotherapists a way to assign patients, create prescriptions, and review movement progress.
 
-## Problem Statement
+## Current Prototype Scope
 
-Patients often struggle to perform physiotherapy exercises correctly at home. Physiotherapists also face challenges in monitoring exercise technique, identifying compensatory movements, and tracking patient progress between appointments.
+Implemented:
 
-## Proposed Solution
+- Patient and physiotherapist registration and JWT authentication.
+- Role-based access control with patient ownership and physiotherapist assignment checks.
+- Patient assignment and prescription creation for physiotherapists.
+- Prescribed exercise sessions with browser camera input.
+- MediaPipe pose tracking with a live skeleton overlay.
+- Automatic rep counting from range-of-motion cycles.
+- Manual rep fallback when camera or pose tracking is unavailable.
+- Low-confidence reps flagged as `UNABLE_TO_ASSESS` instead of producing unreliable ROM values.
+- Trunk-lean and knee-valgus compensation flags.
+- Session completion, incomplete, and unable-to-assess states.
+- Patient progress history, per-rep ROM charts, and average-ROM trends.
+- Session resume after page refresh, with abandoned sessions closed when a new one starts.
+- Patient names in physiotherapist-facing assignment and progress views.
 
-Movexa aims to provide:
+Not implemented in this prototype:
 
-- **AI-Based Movement Monitoring:** Analyze body posture and exercise movements using computer vision.
-- **Compensation Detection:** Identify potential compensatory movements during exercises.
-- **Reliable Assessments:** Flag low-confidence recordings as "Unable to Assess".
-- **Progress Tracking:** Monitor patient-specific progress across sessions.
-- **Offline-First Sessions:** Store exercise session data locally and synchronize when connectivity returns.
-- **Multilingual Support:** Provide instructions in English, Hindi, and Marathi.
+- Offline session storage and synchronization.
+- Multilingual exercise instructions.
+- Physiotherapist verification or administration workflows.
+- Production deployment configuration, media storage, or medical-grade security hardening.
+- Exercise-creation UI. Exercises are seeded; the API can create additional exercises.
 
 ## Technology Stack
 
 | Layer | Technology |
 |---|---|
-| Frontend | React, Vite, JavaScript |
-| Styling | Tailwind CSS, shadcn/ui |
+| Frontend | React 19, Vite, JavaScript |
+| Styling | Tailwind CSS v4 |
 | Backend | Python, FastAPI |
-| AI / Computer Vision | MediaPipe, OpenCV, NumPy |
-| Database | PostgreSQL |
-| ORM | SQLAlchemy |
+| Pose Tracking | MediaPipe Tasks Vision in the browser |
+| Database | PostgreSQL 16 |
+| ORM | SQLAlchemy 2 |
 | Migrations | Alembic |
-| Offline Storage | IndexedDB |
 | Charts | Recharts |
-| Version Control | Git, GitHub |
+| Authentication | JWT with bcrypt password hashing |
 
 ## Project Structure
 
 ```text
 Movexa/
-├── frontend/       # React web application
-├── backend/        # FastAPI backend
-├── ai-engine/      # Movement analysis and AI modules
-├── database/       # Database documentation and seed data
-├── docs/           # Project documentation
-└── .github/        # GitHub workflows
+├── backend/
+│   ├── app/                  # FastAPI application, routes, models, schemas
+│   ├── migrations/           # Alembic environment and revisions
+│   ├── seed.py               # Demo users, exercises, and prescription
+│   └── requirements.txt
+├── frontend/
+│   ├── public/               # Generated MediaPipe assets (gitignored)
+│   ├── scripts/              # MediaPipe setup and pose-math checks
+│   └── src/                  # React pages, components, hooks, and utilities
+├── docker-compose.yml        # PostgreSQL service
+└── README.md
 ```
-
-## Development Goals
-
-1. Build a responsive and accessible web application.
-2. Implement reliable movement and posture analysis.
-3. Track exercise sessions and patient progress.
-4. Support offline session recording and synchronization.
-5. Protect patient information and minimize unnecessary video storage.
 
 ## Important Note
 
-Movexa is an AI-assisted monitoring project, not a replacement for professional medical assessment or physiotherapist supervision.
+Movexa is an AI-assisted monitoring prototype, not a replacement for professional medical assessment or physiotherapist supervision. It does not store exercise video.
 
-## Project Status
+## Local Development
 
-Currently in the initial project setup and development phase.
+Prerequisites: Python 3.12+, Node.js 20+, and Docker Desktop.
+
+### 1. Database
+
+```powershell
+docker compose up -d db
+```
+
+The default local database is available at `localhost:5432` with database `movexa` and user/password `postgres`.
+
+### 2. Backend
+
+```powershell
+cd backend
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+Copy-Item .env.example .env
+alembic upgrade head
+python seed.py
+uvicorn app.main:app --reload --port 8000
+```
+
+API docs: <http://localhost:8000/docs>
+
+### 3. Frontend
+
+```powershell
+cd frontend
+npm install
+npm run setup:mediapipe
+npm run dev
+```
+
+`setup:mediapipe` copies the MediaPipe WASM runtime into `public/wasm` and downloads the pose landmarker model into `public/models`. These generated assets are gitignored. You can run the individual steps with `npm run setup:wasm` and `npm run setup:model`.
+
+The frontend calls the backend at `http://localhost:8000` by default. To point it elsewhere, copy `.env.example` to `.env` and set `VITE_API_BASE_URL`.
+
+Open <http://localhost:5173> and allow camera access when starting an exercise session.
+
+### Demo Accounts
+
+- Patient: `patient@movexa.dev` / `patient123`
+- Physiotherapist: `physio@movexa.dev` / `physio123`
+
+If the demo accounts are missing, run `python seed.py` again from `backend`; the seed script is idempotent.
+
+## Manual Acceptance Checklist
+
+Run this checklist with a camera-enabled browser before treating the prototype as demo-ready.
+
+### Physiotherapist flow
+
+- [ ] Log in as the physiotherapist.
+- [ ] Confirm the patient list shows patient names rather than UUID prefixes.
+- [ ] Assign a patient to yourself.
+- [ ] Create a prescription with a target rep count.
+- [ ] Open the patient's progress view.
+- [ ] Confirm the patient selector shows names and only assigned patients.
+
+### Patient flow
+
+- [ ] Log in as the patient.
+- [ ] Confirm the new prescription appears on the dashboard.
+- [ ] Start the session and allow camera access.
+- [ ] Confirm the skeleton overlay appears and tracking status becomes active.
+- [ ] Perform a full range-of-motion cycle and confirm a rep is saved.
+- [ ] Refresh the page mid-session and confirm the same session and saved reps resume.
+- [ ] Finish the session.
+- [ ] Confirm the progress page shows the session, rep count, per-rep ROM chart, and trend.
+
+### Failure and fallback checks
+
+- [ ] Deny camera access and confirm manual rep entry remains usable.
+- [ ] Start a session, leave it without finishing, then start the same prescription again; confirm the old in-progress session is marked incomplete rather than duplicated.
+- [ ] Confirm reps with confidence below `0.5` are saved as `UNABLE_TO_ASSESS`.
+- [ ] Confirm missing MediaPipe assets show the setup guidance instead of crashing the page.
+
+## Verification Commands
+
+```powershell
+cd frontend
+npm run lint
+npm run check:pose
+npm run build
+```
+
+```powershell
+cd backend
+pip install -r requirements-dev.txt
+.\.venv\Scripts\python.exe -m compileall app
+.\.venv\Scripts\python.exe -m pytest -q
+.\.venv\Scripts\alembic.exe current
+```
+
+Backend tests run against a separate `movexa_test` database, which is created automatically. Set `TEST_DATABASE_URL` to override it. CI runs these checks from `.github/workflows/ci.yml`.
+
+## Troubleshooting
+
+- **Camera does not start:** Use `localhost` or `127.0.0.1`, allow camera permission, and check that another application is not holding the camera.
+- **Pose model fails to load:** Run `npm run setup:mediapipe` from `frontend` and reload the page.
+- **Database connection fails:** Confirm `docker compose ps` shows the `movexa-db` container as healthy and that `backend/.env` matches the Compose credentials.
+- **API requests fail from the frontend:** Confirm the backend is running on `http://localhost:8000` and the frontend is running on `http://localhost:5173`.
+- **Duplicate in-progress sessions from older builds:** Start the prescription again; the new session creation closes older in-progress sessions for that prescription.

@@ -1,7 +1,11 @@
 from datetime import date, datetime
-from typing import Any, Optional
+from typing import Any, Literal, Optional
 from uuid import UUID
 from pydantic import BaseModel, EmailStr, Field
+
+Role = Literal["PATIENT", "PHYSIOTHERAPIST"]
+SessionStatus = Literal["IN_PROGRESS", "COMPLETED", "INCOMPLETE", "UNABLE_TO_ASSESS"]
+AssessmentStatus = Literal["ASSESSED", "UNABLE_TO_ASSESS"]
 
 
 class UserCreate(BaseModel):
@@ -9,7 +13,7 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str
     phone_number: Optional[str] = None
-    role: str = "PATIENT"
+    role: Role = "PATIENT"
 
 
 class UserLogin(BaseModel):
@@ -47,6 +51,7 @@ class PatientCreate(BaseModel):
 class PatientRead(BaseModel):
     id: UUID
     user_id: UUID
+    full_name: Optional[str] = None
     date_of_birth: Optional[date] = None
     gender: Optional[str] = None
     injury: Optional[str] = None
@@ -99,6 +104,10 @@ class AssignmentRead(BaseModel):
         from_attributes = True
 
 
+class AssignmentUpdate(BaseModel):
+    status: Literal["ACTIVE", "ENDED"]
+
+
 class ExerciseCreate(BaseModel):
     name: str
     target_joint: str
@@ -124,6 +133,16 @@ class ExerciseRead(BaseModel):
         from_attributes = True
 
 
+class ExerciseUpdate(BaseModel):
+    name: Optional[str] = None
+    target_joint: Optional[str] = None
+    min_angle_threshold: Optional[float] = None
+    max_angle_threshold: Optional[float] = None
+    instructions: Optional[str] = None
+    video_url: Optional[str] = None
+    is_active: Optional[bool] = None
+
+
 class PrescriptionCreate(BaseModel):
     patient_id: UUID
     physiotherapist_id: UUID
@@ -147,6 +166,12 @@ class PrescriptionRead(BaseModel):
         from_attributes = True
 
 
+class PrescriptionUpdate(BaseModel):
+    target_reps: Optional[int] = None
+    target_sets: Optional[int] = None
+    is_active: Optional[bool] = None
+
+
 class RehabSessionCreate(BaseModel):
     patient_id: UUID
     prescription_id: UUID
@@ -158,7 +183,7 @@ class RehabSessionRead(BaseModel):
     id: UUID
     patient_id: UUID
     prescription_id: UUID
-    status: str
+    status: SessionStatus
     started_at: datetime
     completed_at: Optional[datetime] = None
     synced_at: Optional[datetime] = None
@@ -169,15 +194,40 @@ class RehabSessionRead(BaseModel):
         from_attributes = True
 
 
+class SessionSummaryRead(BaseModel):
+    id: UUID
+    patient_id: UUID
+    prescription_id: UUID
+    exercise_id: UUID
+    exercise_name: str
+    target_joint: str
+    target_reps: int
+    target_sets: int
+    status: SessionStatus
+    started_at: datetime
+    completed_at: Optional[datetime] = None
+    rep_count: int
+    assessed_count: int
+    unable_count: int
+    avg_rom: Optional[float] = None
+    best_rom: Optional[float] = None
+    avg_confidence: Optional[float] = None
+    last_rep_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
 class RepMetricCreate(BaseModel):
     session_id: UUID
-    rep_number: int
-    assessment_status: str
+    rep_number: Optional[int] = None
+    set_number: Optional[int] = None
+    assessment_status: AssessmentStatus
     range_of_motion: Optional[float] = None
     confidence: Optional[float] = None
     movement_data: Optional[dict] = None
     compensation_flags: Optional[dict] = None
-    detected_issues: Optional[dict] = None
+    detected_issues: Optional[Any] = None
     feedback: Optional[str] = None
 
 
@@ -185,12 +235,13 @@ class RepMetricRead(BaseModel):
     id: UUID
     session_id: UUID
     rep_number: int
-    assessment_status: str
+    set_number: int
+    assessment_status: AssessmentStatus
     range_of_motion: Optional[float]
     confidence: Optional[float]
     movement_data: Optional[dict]
     compensation_flags: Optional[dict]
-    detected_issues: Optional[dict]
+    detected_issues: Optional[Any]
     feedback: Optional[str]
     created_at: datetime
 

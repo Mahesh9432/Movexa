@@ -10,6 +10,7 @@ from sqlalchemy import (
     Uuid,
     func,
 )
+from sqlalchemy.orm import relationship
 
 from app.database.connection import Base
 
@@ -30,6 +31,12 @@ class Patient(Base):
         unique=True,
         index=True,
     )
+
+    user = relationship("User", lazy="joined")
+
+    @property
+    def full_name(self):
+        return self.user.full_name if self.user else None
 
     date_of_birth = Column(
         Date,

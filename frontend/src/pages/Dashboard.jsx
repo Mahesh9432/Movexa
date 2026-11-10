@@ -1,31 +1,38 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../lib/api";
+import PhysioPanel from "../components/PhysioPanel";
 
 export default function Dashboard() {
   const [me, setMe] = useState(null);
   const [patient, setPatient] = useState(null);
   const [exercises, setExercises] = useState([]);
   const [prescriptions, setPrescriptions] = useState([]);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
     (async () => {
-      const { data: user } = await api.get("/users/me");
-      setMe(user);
-      const { data: exs } = await api.get("/exercises");
-      setExercises(exs);
+      try {
+        const { data: user } = await api.get("/users/me");
+        setMe(user);
 
-      if (user.role === "PATIENT") {
-        const { data: patients } = await api.get("/patients");
-        let p = patients.find((x) => x.user_id === user.id);
-        if (!p) {
-          const { data } = await api.post("/patients", {});
-          p = data;
+        if (user.role === "PATIENT") {
+          const { data: exs } = await api.get("/exercises");
+          setExercises(exs);
+
+          const { data: patients } = await api.get("/patients");
+          let p = patients[0];
+          if (!p) {
+            const { data } = await api.post("/patients", {});
+            p = data;
+          }
+          setPatient(p);
+          const { data: pres } = await api.get(`/prescriptions?patient_id=${p.id}`);
+          setPrescriptions(pres);
         }
-        setPatient(p);
-        const { data: pres } = await api.get(`/prescriptions?patient_id=${p.id}`);
-        setPrescriptions(pres);
+      } catch (err) {
+        setError(err?.response?.data?.detail || "Failed to load dashboard");
       }
     })();
   }, []);
@@ -37,35 +44,90 @@ export default function Dashboard() {
 
   const startSession = (pres) => {
     const exercise = exercises.find((e) => e.id === pres.exercise_id);
-    navigate(`/session?patientId=${patient.id}&prescriptionId=${pres.id}&exerciseName=${encodeURIComponent(exercise?.name || "Exercise")}`);
+    navigate(
+      `/session?patientId=${patient.id}&prescriptionId=${pres.id}&exerciseId=${pres.exercise_id}&exerciseName=${encodeURIComponent(
+        exercise?.name || "Exercise"
+      )}&targetJoint=${encodeURIComponent(
+        exercise?.target_joint || "Knee"
+      )}&targetReps=${pres.target_reps}&targetSets=${pres.target_sets}`
+    );
   };
 
-  if (!me) return <div className="min-h-screen bg-slate-950 text-white p-8">Loading...</div>;
+  if (!me) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-white p-8">
+        {error || "Loading..."}
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-950 text-white p-8">
       <div className="max-w-5xl mx-auto">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-3">
           <h1 className="text-3xl font-bold text-cyan-400">Movexa Dashboard</h1>
-          <button onClick={logout} className="text-sm bg-slate-700 px-3 py-1 rounded">Logout</button>
+          <div className="flex items-center gap-2">
+            {me.role === "PATIENT" && patient && (
+              <button
+                onClick={() => navigate(`/progress?patientId=${patient.id}`)}
+                className="text-sm bg-cyan-500 text-black px-3 py-1 rounded font-semibold"
+              >
+                View Progress
+              </button>
+            )}
+            <button
+              onClick={logout}
+              className="text-sm bg-slate-700 px-3 py-1 rounded"
+            >
+              Logout
+            </button>
+          </div>
         </div>
-        <p className="mt-2 text-slate-300">Signed in as {me.full_name} ({me.role})</p>
+        <p className="mt-2 text-slate-300">
+          Signed in as {me.full_name} ({me.role})
+        </p>
+
+        {error && <p className="mt-4 text-red-400 text-sm">{error}</p>}
 
         {me.role === "PATIENT" && (
           <div className="mt-6">
             <h2 className="text-xl font-semibold">My Prescriptions</h2>
-            {prescriptions.length === 0 && <p className="text-slate-400 mt-2">No prescriptions yet. Ask your physiotherapist to assign one, or use demo account physio@movexa.local.</p>}
+            {prescriptions.length === 0 && (
+              <p className="text-slate-400 mt-2">
+                No prescriptions yet. Ask your physiotherapist to assign one, or
+                use demo account physio@movexa.dev.
+              </p>
+            )}
             <div className="grid gap-4 mt-4">
               {prescriptions.map((p) => {
                 const ex = exercises.find((e) => e.id === p.exercise_id);
                 return (
-                  <div key={p.id} className="bg-slate-800 rounded-lg p-4 flex items-center justify-between">
+                  <div
+                    key={p.id}
+                    className="bg-slate-800 rounded-lg p-4 flex items-center justify-between"
+                  >
                     <div>
                       <p className="font-semibold">{ex?.name || "Exercise"}</p>
-                      <p className="text-sm text-slate-400">Target: {p.target_reps} reps x {p.target_sets} sets</p>
-                      {ex?.video_url && <a className="text-cyan-400 text-sm" href={ex.video_url} target="_blank" rel="noreferrer">Guided video</a>}
+                      <p className="text-sm text-slate-400">
+                        Target: {p.target_reps} reps x {p.target_sets} sets
+                      </p>
+                      {ex?.video_url && (
+                        <a
+                          className="text-cyan-400 text-sm"
+                          href={ex.video_url}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Guided video
+                        </a>
+                      )}
                     </div>
-                    <button onClick={() => startSession(p)} className="bg-cyan-500 text-black px-4 py-2 rounded font-semibold">Start Session</button>
+                    <button
+                      onClick={() => startSession(p)}
+                      className="bg-cyan-500 text-black px-4 py-2 rounded font-semibold"
+                    >
+                      Start Session
+                    </button>
                   </div>
                 );
               })}
@@ -76,8 +138,14 @@ export default function Dashboard() {
                 {exercises.map((e) => (
                   <div key={e.id} className="bg-slate-800 rounded p-3">
                     <p className="font-semibold">{e.name}</p>
-                    <p className="text-sm text-slate-400">Joint: {e.target_joint} | ROM: {e.min_angle_threshold ?? "-"}-{e.max_angle_threshold ?? "-"} deg</p>
-                    {e.instructions && <p className="text-sm mt-1">{e.instructions}</p>}
+                    <p className="text-sm text-slate-400">
+                      Joint: {e.target_joint} | ROM:{" "}
+                      {e.min_angle_threshold ?? "-"}-
+                      {e.max_angle_threshold ?? "-"} deg
+                    </p>
+                    {e.instructions && (
+                      <p className="text-sm mt-1">{e.instructions}</p>
+                    )}
                   </div>
                 ))}
               </div>
@@ -87,8 +155,15 @@ export default function Dashboard() {
 
         {me.role === "PHYSIOTHERAPIST" && (
           <div className="mt-6">
-            <p className="text-slate-300">Physiotherapist view. Use API or seed data for demo. Endpoints available for assignments/prescriptions.</p>
-            <a href="http://localhost:8000/docs" className="text-cyan-400 underline" target="_blank" rel="noreferrer">Open API docs</a>
+            <PhysioPanel />
+            <a
+              href="http://localhost:8000/docs"
+              className="inline-block mt-6 text-cyan-400 underline text-sm"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Open API docs
+            </a>
           </div>
         )}
       </div>

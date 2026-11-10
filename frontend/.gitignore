@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# Generated MediaPipe assets
+public/wasm/
+public/models/*.task
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -11,13 +11,13 @@ db = SessionLocal()
 if db.query(User).count() == 0:
     patient_user = User(
         full_name="Demo Patient",
-        email="patient@movexa.local",
+        email="patient@movexa.dev",
         hashed_password=get_password_hash("patient123"),
         role="PATIENT",
     )
     physio_user = User(
         full_name="Demo Physiotherapist",
-        email="physio@movexa.local",
+        email="physio@movexa.dev",
         hashed_password=get_password_hash("physio123"),
         role="PHYSIOTHERAPIST",
     )

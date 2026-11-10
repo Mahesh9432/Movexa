@@ -19,6 +19,8 @@ export default function App() {
         <Route path="/dashboard" element={<Protected><Dashboard /></Protected>} />
         <Route path="/session" element={<Protected><Session /></Protected>} />
         <Route path="/progress" element={<Protected><Progress /></Protected>} />
+        <Route path="/sessions" element={<Navigate to="/progress" replace />} />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </BrowserRouter>
   );
