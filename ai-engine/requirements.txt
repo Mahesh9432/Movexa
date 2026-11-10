@@ -1,0 +1,6 @@
+﻿mediapipe
+numpy
+fastapi
+uvicorn
+requests
+websockets
