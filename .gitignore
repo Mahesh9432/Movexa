@@ -31,3 +31,9 @@ Thumbs.db
 # Database backups
 *.dump
 *.backup
+
+# Movexa local offline session data
+ai-engine/data/
+
+# Temporary integration backups
+ai-engine/*.integration-backup
