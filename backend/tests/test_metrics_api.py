@@ -446,3 +446,146 @@ def test_confidence_outside_allowed_range_returns_422(
     )
 
     assert response.status_code == 422
+
+
+def test_patient_can_submit_darshan_ai_metrics(
+    client, records, monkeypatch
+):
+    from app.api import metrics
+
+    authenticate(records.patient_user)
+
+    monkeypatch.setattr(
+        metrics,
+        "_get_owned_session",
+        lambda db, session_id, user: records.session,
+    )
+
+    saved_records = [
+        SimpleNamespace(
+            id=uuid4(),
+            session_id=records.session.id,
+            rep_number=1,
+            assessment_status="ASSESSED",
+            range_of_motion=82.5,
+            confidence=None,
+            movement_data={
+                "min_knee_angle": 65.0,
+                "max_knee_angle": 147.5,
+                "rom_degrees": 82.5,
+                "duration_seconds": 2.4,
+                "sample_count": 30,
+            },
+            compensation_flags=None,
+            detected_issues=None,
+            feedback=None,
+        )
+    ]
+
+    captured = {}
+
+    def mock_save(db, session, data):
+        captured["session"] = session
+        captured["data"] = data
+        return saved_records
+
+    monkeypatch.setattr(metrics, "save_rep_metrics", mock_save)
+
+    payload = {
+        "session_id": str(records.session.id),
+        "exercise": "squat",
+        "repetitions": 1,
+        "current_phase": "standing",
+        "individual_repetitions": [
+            {
+                "rep_number": 1,
+                "min_knee_angle": 65.0,
+                "max_knee_angle": 147.5,
+                "rom_degrees": 82.5,
+                "duration_seconds": 2.4,
+                "sample_count": 30,
+                "assessment_status": "ASSESSED",
+            }
+        ],
+        "compensation_issues": ["Forward lean"],
+    }
+
+    response = client.post(
+        f"/api/sessions/{records.session.id}/metrics",
+        json=payload,
+    )
+
+    assert response.status_code == 201
+    assert response.json()["total_repetitions"] == 1
+    assert captured["session"] is records.session
+
+    adapted = captured["data"].repetitions_data[0]
+
+    assert adapted.rep_number == 1
+    assert adapted.assessment_status == "ASSESSED"
+    assert adapted.range_of_motion == 82.5
+    assert adapted.confidence is None
+    assert adapted.movement_data["sample_count"] == 30
+    assert adapted.movement_data["session_level"]["compensation_issues"] == [
+        "Forward lean"
+    ]
+
+
+def test_darshan_ai_metrics_reject_mismatched_session_id(
+    client, records, monkeypatch
+):
+    from app.api import metrics
+
+    authenticate(records.patient_user)
+
+    monkeypatch.setattr(
+        metrics,
+        "_get_owned_session",
+        lambda db, session_id, user: records.session,
+    )
+
+    payload = {
+        "session_id": str(uuid4()),
+        "exercise": "squat",
+        "individual_repetitions": [
+            {
+                "rep_number": 1,
+                "min_knee_angle": 65.0,
+                "max_knee_angle": 147.5,
+                "rom_degrees": 82.5,
+                "duration_seconds": 2.4,
+                "sample_count": 30,
+                "assessment_status": "ASSESSED",
+            }
+        ],
+        "compensation_issues": [],
+    }
+
+    response = client.post(
+        f"/api/sessions/{records.session.id}/metrics",
+        json=payload,
+    )
+
+    assert response.status_code == 422
+    assert "does not match" in response.json()["detail"]
+
+
+def test_invalid_darshan_ai_metrics_return_422(
+    client, records
+):
+    authenticate(records.patient_user)
+
+    payload = {
+        "session_id": str(records.session.id),
+        "exercise": "squat",
+        "individual_repetitions": [],
+        "compensation_issues": [],
+    }
+
+    response = client.post(
+        f"/api/sessions/{records.session.id}/metrics",
+        json=payload,
+    )
+
+    assert response.status_code == 422
+    assert "no per-repetition measurements" in response.json()["detail"]

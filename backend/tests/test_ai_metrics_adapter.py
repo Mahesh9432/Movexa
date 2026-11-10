@@ -240,3 +240,134 @@ def test_save_ai_metrics_propagates_invalid_session_error(
             object(),
             valid_ai_result(),
         )
+
+def test_adapt_darshan_individual_repetitions():
+    ai_result = {
+        "individual_repetitions": [
+            {
+                "rep_number": 1,
+                "min_knee_angle": 85.5,
+                "max_knee_angle": 170.5,
+                "rom_degrees": 85.0,
+                "duration_seconds": 2.4,
+                "sample_count": 12,
+                "assessment_status": "ASSESSED",
+            },
+            {
+                "rep_number": 2,
+                "min_knee_angle": 90.0,
+                "max_knee_angle": 165.0,
+                "rom_degrees": 75.0,
+                "duration_seconds": 0.3,
+                "sample_count": 3,
+                "assessment_status": "UNABLE_TO_ASSESS",
+            },
+        ],
+        "compensation_issues": [
+            "Excessive Forward Lean",
+            "Asymmetrical Squat",
+        ],
+    }
+
+    result = adapt_ai_result(ai_result)
+
+    assert len(result.repetitions_data) == 2
+
+    first = result.repetitions_data[0]
+    assert first.range_of_motion == 85.0
+    assert first.confidence is None
+    assert first.movement_data["min_knee_angle"] == 85.5
+    assert first.movement_data["sample_count"] == 12
+
+    second = result.repetitions_data[1]
+    assert second.range_of_motion is None
+    assert second.movement_data["rom_degrees"] == 75.0
+
+    for repetition in result.repetitions_data:
+        assert repetition.movement_data["session_level"][
+            "compensation_issues"
+        ] == [
+            "Excessive Forward Lean",
+            "Asymmetrical Squat",
+        ]
+
+
+def test_rejects_empty_individual_repetitions():
+    with pytest.raises(
+        AIEngineIntegrationError,
+        match="no per-repetition measurements",
+    ):
+        adapt_ai_result({"individual_repetitions": []})
+
+
+def test_rejects_duplicate_ai_repetition_numbers():
+    ai_result = {
+        "individual_repetitions": [
+            {
+                "rep_number": 1,
+                "assessment_status": "ASSESSED",
+                "rom_degrees": 85.0,
+            },
+            {
+                "rep_number": 1,
+                "assessment_status": "ASSESSED",
+                "rom_degrees": 90.0,
+            },
+        ]
+    }
+
+    with pytest.raises(
+        AIEngineIntegrationError,
+        match="backend validation",
+    ):
+        adapt_ai_result(ai_result)
+
+
+def test_rejects_invalid_ai_compensation_issues():
+    ai_result = {
+        "individual_repetitions": [
+            {
+                "rep_number": 1,
+                "assessment_status": "ASSESSED",
+                "rom_degrees": 85.0,
+            }
+        ],
+        "compensation_issues": "invalid",
+    }
+
+    with pytest.raises(
+        AIEngineIntegrationError,
+        match="compensation_issues must be a list",
+    ):
+        adapt_ai_result(ai_result)
+
+
+def test_save_ai_metrics_accepts_darshan_output(monkeypatch):
+    captured = {}
+
+    def fake_save(db, session, metrics_data):
+        captured["metrics_data"] = metrics_data
+        return ["saved"]
+
+    monkeypatch.setattr(
+        ai_metrics_adapter,
+        "save_rep_metrics",
+        fake_save,
+    )
+
+    result = save_ai_metrics(
+        object(),
+        object(),
+        {
+            "individual_repetitions": [
+                {
+                    "rep_number": 1,
+                    "assessment_status": "ASSESSED",
+                    "rom_degrees": 85.0,
+                }
+            ]
+        },
+    )
+
+    assert result == ["saved"]
+    assert len(captured["metrics_data"].repetitions_data) == 1
