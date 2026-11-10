@@ -67,15 +67,19 @@ Movexa is an AI-assisted monitoring prototype, not a replacement for professiona
 
 ## Local Development
 
-Prerequisites: Python 3.12+, Node.js 20+, and Docker Desktop.
+Prerequisites: Python 3.12+, Node.js 20+, and either Docker Desktop or a PostgreSQL database (local or hosted, e.g. Supabase).
 
 ### 1. Database
+
+Option A - Docker (local):
 
 ```powershell
 docker compose up -d db
 ```
 
 The default local database is available at `localhost:5432` with database `movexa` and user/password `postgres`.
+
+Option B - Supabase (shared/hosted): create a project, then set `DATABASE_URL` to the pooled connection string and `MIGRATION_DATABASE_URL` to the direct connection string in `backend/.env`, both with `sslmode=require`. Run `alembic upgrade head` using the direct URL, then `python seed.py`.
 
 ### 2. Backend
 

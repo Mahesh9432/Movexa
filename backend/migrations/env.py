@@ -24,7 +24,7 @@ def run_migrations_offline() -> None:
     """Run migrations without creating a database connection."""
 
     context.configure(
-        url=settings.DATABASE_URL,
+        url=settings.MIGRATION_DATABASE_URL or settings.DATABASE_URL,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -40,7 +40,7 @@ def run_migrations_online() -> None:
     """Run migrations using the configured database connection."""
 
     connectable = create_engine(
-        settings.DATABASE_URL,
+        settings.MIGRATION_DATABASE_URL or settings.DATABASE_URL,
         poolclass=pool.NullPool,
         pool_pre_ping=True,
     )
