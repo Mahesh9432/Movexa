@@ -1,5 +1,5 @@
 
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Activity,
   AlertCircle,
@@ -15,6 +15,9 @@ import {
   getPhysiotherapistDashboard,
   getPhysiotherapistPatients,
 } from "../../api/dashboard";
+import StatCard from "../../components/common/StatCard";
+import EmptyState from "../../components/common/EmptyState";
+import StatusBadge from "../../components/common/StatusBadge";
 
 const formatDate = (value) => {
   if (!value) return "No sessions yet";
@@ -39,47 +42,6 @@ const formatStatus = (status) => {
     .replace(/\b\w/g, (character) => character.toUpperCase());
 };
 
-const getStatusStyle = (status) => {
-  switch (status) {
-    case "COMPLETED":
-      return "bg-green-50 text-green-700";
-    case "IN_PROGRESS":
-      return "bg-blue-50 text-blue-700";
-    case "UNABLE_TO_ASSESS":
-      return "bg-amber-50 text-amber-700";
-    case "INCOMPLETE":
-      return "bg-red-50 text-red-700";
-    default:
-      return "bg-gray-100 text-gray-600";
-  }
-};
-
-function StatCard({ label, value, icon: Icon, description }) {
-  return (
-    <div className="bg-white border border-[#D9E3ED] rounded-xl p-4 md:p-5">
-      <div className="flex justify-between items-center gap-2">
-        <span className="text-xs text-gray-500 font-medium">{label}</span>
-        <Icon size={19} className="text-[#087F73]" />
-      </div>
-
-      <p className="text-2xl font-bold text-[#193B62] mt-3">
-        {value ?? 0}
-      </p>
-
-      <p className="text-[11px] text-gray-400 mt-1">{description}</p>
-    </div>
-  );
-}
-
-function EmptyState({ message }) {
-  return (
-    <div className="px-5 py-10 text-center">
-      <Users size={26} className="mx-auto text-gray-300 mb-2" />
-      <p className="text-sm text-gray-500">{message}</p>
-    </div>
-  );
-}
-
 export default function PhysioDashboard({ onLogout, onNavigate }) {
   const [dashboard, setDashboard] = useState(null);
   const [patients, setPatients] = useState([]);
@@ -87,8 +49,6 @@ export default function PhysioDashboard({ onLogout, onNavigate }) {
   const [error, setError] = useState("");
 
   const loadDashboard = useCallback(async () => {
-    setLoading(true);
-    setError("");
 
     try {
       const [dashboardData, patientData] = await Promise.all([
@@ -106,7 +66,16 @@ export default function PhysioDashboard({ onLogout, onNavigate }) {
   }, []);
 
   useEffect(() => {
-    loadDashboard();
+    let cancelled = false;
+
+    Promise.resolve().then(() => {
+      if (!cancelled) return loadDashboard();
+      return undefined;
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [loadDashboard]);
 
   const summary = dashboard?.summary ?? {};
@@ -379,7 +348,7 @@ export default function PhysioDashboard({ onLogout, onNavigate }) {
                       onClick={() => onNavigate?.("physio-patients")}
                       className="text-xs font-bold text-[#087F73] hover:underline whitespace-nowrap"
                     >
-                      View All →
+                      View All â†’
                     </button>
                   </div>
                 </div>
@@ -400,7 +369,7 @@ export default function PhysioDashboard({ onLogout, onNavigate }) {
                           <p className="text-xs text-gray-500 mt-1">
                             {patient.affected_area ||
                               "Affected area not specified"}
-                            {patient.injury ? ` • ${patient.injury}` : ""}
+                            {patient.injury ? ` â€¢ ${patient.injury}` : ""}
                           </p>
                           <p className="text-[11px] text-gray-400 mt-1">
                             {patient.email || "No email available"}
@@ -464,11 +433,7 @@ export default function PhysioDashboard({ onLogout, onNavigate }) {
                             <Activity size={13} />
                             {session.total_repetitions ?? 0} repetitions
                           </span>
-                          <span
-                            className={`text-[10px] font-semibold px-2.5 py-1 rounded-full ${getStatusStyle(session.status)}`}
-                          >
-                            {formatStatus(session.status)}
-                          </span>
+                          <StatusBadge status={session.status} />
                         </div>
                       </div>
                     ))}

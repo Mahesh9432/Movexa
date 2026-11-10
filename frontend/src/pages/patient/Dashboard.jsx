@@ -1,14 +1,26 @@
 
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import {
+  BookOpen,
+  CalendarDays,
+  ClipboardList,
+  LayoutDashboard,
+  Menu,
+  TrendingUp,
+  UserRound,
+  X,
+} from "lucide-react";
 import { getPatientDashboard } from "../../api/dashboard";
+import StatCard from "../../components/common/StatCard";
+import StatusBadge from "../../components/common/StatusBadge";
 
 const navItems = [
-  { name: "Dashboard", icon: "📊", view: "dashboard" },
-  { name: "My Exercises", icon: "📋", view: "exercises" },
-  { name: "Exercise Library", icon: "📚", view: "library" },
-  { name: "Progress", icon: "📈", view: "progress" },
-  { name: "Appointments", icon: "📅", view: "appointments" },
-  { name: "Profile", icon: "👤", view: "profile" },
+  { name: "Dashboard", icon: LayoutDashboard, view: "dashboard" },
+  { name: "My Exercises", icon: ClipboardList, view: "exercises" },
+  { name: "Exercise Library", icon: BookOpen, view: "library" },
+  { name: "Progress", icon: TrendingUp, view: "progress" },
+  { name: "Appointments", icon: CalendarDays, view: "appointments" },
+  { name: "Profile", icon: UserRound, view: "profile" },
 ];
 
 function getInitials(name = "") {
@@ -32,44 +44,6 @@ function formatDate(value) {
     month: "short",
     year: "numeric",
   });
-}
-
-function formatStatus(status = "") {
-  return status
-    .toLowerCase()
-    .replaceAll("_", " ")
-    .replace(/\b\w/g, (letter) => letter.toUpperCase());
-}
-
-function StatusBadge({ status }) {
-  const styles = {
-    COMPLETED: "bg-emerald-50 text-emerald-700",
-    IN_PROGRESS: "bg-blue-50 text-blue-700",
-    INCOMPLETE: "bg-amber-50 text-amber-700",
-    UNABLE_TO_ASSESS: "bg-red-50 text-red-700",
-  };
-
-  return (
-    <span
-      className={`text-[10px] font-semibold px-3 py-1 rounded-full ${
-        styles[status] || "bg-gray-100 text-gray-600"
-      }`}
-    >
-      {formatStatus(status) || "Unknown"}
-    </span>
-  );
-}
-
-function StatCard({ label, value, description }) {
-  return (
-    <div className="bg-white border border-[#D9E3ED] rounded-xl p-4 shadow-sm">
-      <p className="text-xs text-gray-500">{label}</p>
-      <p className="text-2xl font-bold mt-2 text-[#193B62]">{value}</p>
-      {description && (
-        <p className="text-[10px] text-gray-500 mt-2">{description}</p>
-      )}
-    </div>
-  );
 }
 
 function LoadingState() {
@@ -116,8 +90,6 @@ export default function PatientDashboard({ onLogout, onNavigate }) {
   const [error, setError] = useState("");
 
   const loadDashboard = useCallback(async () => {
-    setLoading(true);
-    setError("");
 
     try {
       const response = await getPatientDashboard();
@@ -131,7 +103,16 @@ export default function PatientDashboard({ onLogout, onNavigate }) {
   }, []);
 
   useEffect(() => {
-    loadDashboard();
+    let cancelled = false;
+
+    Promise.resolve().then(() => {
+      if (!cancelled) return loadDashboard();
+      return undefined;
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [loadDashboard]);
 
   const handleNavClick = (view) => {
@@ -155,7 +136,9 @@ export default function PatientDashboard({ onLogout, onNavigate }) {
 
   const renderNavigation = () => (
     <nav className="space-y-1.5">
-      {navItems.map((item) => (
+      {navItems.map((item) => {
+        const Icon = item.icon;
+        return (
         <button
           key={item.view}
           onClick={() => handleNavClick(item.view)}
@@ -165,10 +148,11 @@ export default function PatientDashboard({ onLogout, onNavigate }) {
               : "text-gray-600 hover:bg-gray-50 hover:text-[#193B62]"
           }`}
         >
-          <span className="text-base">{item.icon}</span>
+          <Icon size={16} strokeWidth={1.8} />
           <span>{item.name}</span>
         </button>
-      ))}
+        );
+      })}
     </nav>
   );
 
@@ -206,7 +190,7 @@ export default function PatientDashboard({ onLogout, onNavigate }) {
               className="text-xl"
               aria-label="Open navigation"
             >
-              ☰
+              <Menu size={20} />
             </button>
 
             <span className="bg-[#087F73] text-white font-bold text-xs px-2 py-1 rounded">
@@ -242,7 +226,7 @@ export default function PatientDashboard({ onLogout, onNavigate }) {
                     className="text-xl"
                     aria-label="Close navigation"
                   >
-                    ✕
+                    <X size={20} />
                   </button>
                 </div>
 

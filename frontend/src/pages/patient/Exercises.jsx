@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Activity,
   BookOpen,
@@ -206,8 +206,6 @@ export default function PatientExercises({ onLogout, onNavigate }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const loadData = useCallback(async () => {
-    setLoading(true);
-    setError("");
 
     try {
       const [prescriptionResponse, exerciseResponse] = await Promise.all([
@@ -231,7 +229,16 @@ export default function PatientExercises({ onLogout, onNavigate }) {
   }, []);
 
   useEffect(() => {
-    loadData();
+    let cancelled = false;
+
+    Promise.resolve().then(() => {
+      if (!cancelled) return loadData();
+      return undefined;
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [loadData]);
 
   const exerciseMap = useMemo(

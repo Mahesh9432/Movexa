@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
@@ -13,7 +13,7 @@ import PhysioPatients from "./pages/physiotherapist/Patients";
 import PhysioPrescriptions from "./pages/physiotherapist/Prescriptions";
 import PhysioProfile from "./pages/physiotherapist/Profile";
 
-import { useAuth } from "./context/AuthContext";
+import { useAuth } from "./context/useAuth";
 
 const pageNames = {
   library: "Exercise Library",
@@ -45,17 +45,6 @@ export default function App() {
   const isPhysio = user?.role === "PHYSIOTHERAPIST";
   const dashboardView = isPhysio ? "physio-dashboard" : "dashboard";
 
-  useEffect(() => {
-    if (loading) return;
-
-    if (!isAuthenticated) {
-      setCurrentView("login");
-      setSessionPrescriptionId("");
-      return;
-    }
-
-    setCurrentView(dashboardView);
-  }, [loading, isAuthenticated, dashboardView]);
 
   const handleLogout = () => {
     logout();

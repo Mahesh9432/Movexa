@@ -1,4 +1,3 @@
-import React from 'react';
 import { Activity, LogOut } from 'lucide-react';
 
 export default function PatientLayout({ children, onLogout }) {

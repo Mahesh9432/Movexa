@@ -1,6 +1,7 @@
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { getPhysiotherapistPatients } from "../../api/dashboard";
+import PageHeader from "../../components/common/PageHeader";
 
 const navItems = [
   { name: "Dashboard", view: "physio-dashboard" },
@@ -123,8 +124,6 @@ export default function PhysioPatients({ onLogout, onNavigate }) {
   const [error, setError] = useState("");
 
   const loadPatients = useCallback(async () => {
-    setLoading(true);
-    setError("");
 
     try {
       const response = await getPhysiotherapistPatients();
@@ -146,7 +145,16 @@ export default function PhysioPatients({ onLogout, onNavigate }) {
   }, []);
 
   useEffect(() => {
-    loadPatients();
+    let cancelled = false;
+
+    Promise.resolve().then(() => {
+      if (!cancelled) return loadPatients();
+      return undefined;
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [loadPatients]);
 
   const filteredPatients = useMemo(() => {
@@ -226,24 +234,18 @@ export default function PhysioPatients({ onLogout, onNavigate }) {
 
         <main className="p-4 md:p-8 max-w-6xl mx-auto space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-[#087F73]">
-                Clinical Workspace
-              </p>
-              <h1 className="text-2xl md:text-3xl font-bold mt-1 text-[#193B62]">
-                My Patients
-              </h1>
-              <p className="text-sm text-gray-500 mt-1">
-                View patients currently assigned to your care.
-              </p>
-            </div>
+            <PageHeader
+              category="Clinical Workspace"
+              title="My Patients"
+              subtitle="View patients currently assigned to your care."
+            />
 
             <div className="bg-white border border-[#D9E3ED] rounded-xl px-4 py-3 min-w-32">
               <p className="text-[10px] uppercase tracking-wide text-gray-400 font-bold">
                 Assigned Patients
               </p>
               <p className="text-2xl font-bold text-[#087F73] mt-1">
-                {loading ? "—" : patients.length}
+                {loading ? "â€”" : patients.length}
               </p>
             </div>
           </div>

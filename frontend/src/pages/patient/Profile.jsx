@@ -1,13 +1,28 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import {
+  Activity,
+  BookOpen,
+  CalendarDays,
+  ClipboardList,
+  DoorOpen,
+  LayoutDashboard,
+  Menu,
+  Pencil,
+  Settings,
+  Siren,
+  Stethoscope,
+  UserRound,
+  X,
+} from "lucide-react";
 import { getPatientProfile, updatePatientProfile } from "../../api/profile";
 
 const navItems = [
-  { name: "Dashboard", icon: "ðŸ“Š", view: "dashboard" },
-  { name: "My Exercises", icon: "ðŸ“‹", view: "exercises" },
-  { name: "Exercise Library", icon: "ðŸ“š", view: "library" },
-  { name: "Progress", icon: "ðŸ“ˆ", view: "progress" },
-  { name: "Appointments", icon: "ðŸ“…", view: "appointments" },
-  { name: "Profile", icon: "ðŸ‘¤", view: "profile" },
+  { name: "Dashboard", icon: LayoutDashboard, view: "dashboard" },
+  { name: "My Exercises", icon: ClipboardList, view: "exercises" },
+  { name: "Exercise Library", icon: BookOpen, view: "library" },
+  { name: "Progress", icon: Activity, view: "progress" },
+  { name: "Appointments", icon: CalendarDays, view: "appointments" },
+  { name: "Profile", icon: UserRound, view: "profile" },
 ];
 
 const emptyProfile = {
@@ -222,7 +237,9 @@ export default function PatientProfile({ onLogout, onNavigate }) {
 
   const renderNavigation = () => (
     <nav className="space-y-1.5">
-      {navItems.map((item) => (
+      {navItems.map((item) => {
+        const Icon = item.icon;
+        return (
         <button
           key={item.view}
           onClick={() => handleNavClick(item.view)}
@@ -232,10 +249,11 @@ export default function PatientProfile({ onLogout, onNavigate }) {
               : "text-gray-600 hover:bg-gray-50 hover:text-[#193B62]"
           }`}
         >
-          <span className="text-base">{item.icon}</span>
+          <Icon size={16} strokeWidth={1.8} />
           <span>{item.name}</span>
         </button>
-      ))}
+        );
+      })}
     </nav>
   );
 
@@ -278,7 +296,7 @@ export default function PatientProfile({ onLogout, onNavigate }) {
         <div>
           <div className="flex items-center gap-3 mb-8">
             <div className="bg-[#087F73] text-white font-bold text-xs px-2.5 py-1 rounded">
-              MOVEáºŠA
+              MOVEXA
             </div>
             <span className="font-bold text-xs text-gray-500 uppercase tracking-wider">
               Telemetry Rehab
@@ -302,7 +320,7 @@ export default function PatientProfile({ onLogout, onNavigate }) {
             onClick={onLogout}
             className="w-full bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-semibold py-2 rounded-lg"
           >
-            ðŸšª Sign Out
+            <DoorOpen size={14} className="inline mr-1" /> Sign Out
           </button>
         </div>
       </aside>
@@ -317,10 +335,10 @@ export default function PatientProfile({ onLogout, onNavigate }) {
               className="text-xl"
               aria-label="Open navigation"
             >
-              â˜°
+              <Menu size={20} />
             </button>
             <span className="bg-[#087F73] text-white font-bold text-xs px-2 py-1 rounded">
-              MOVEáºŠA
+              MOVEXA
             </span>
           </div>
 
@@ -344,14 +362,14 @@ export default function PatientProfile({ onLogout, onNavigate }) {
               <div>
                 <div className="flex justify-between items-center mb-8">
                   <span className="bg-[#087F73] text-white font-bold text-xs px-2.5 py-1 rounded">
-                    MOVEáºŠA
+                    MOVEXA
                   </span>
                   <button
                     onClick={() => setMobileMenuOpen(false)}
                     className="text-xl"
                     aria-label="Close navigation"
                   >
-                    âœ•
+                    <X size={20} />
                   </button>
                 </div>
                 {renderNavigation()}
@@ -361,7 +379,7 @@ export default function PatientProfile({ onLogout, onNavigate }) {
                 onClick={onLogout}
                 className="w-full bg-red-50 text-red-600 border border-red-200 text-xs font-semibold py-2.5 rounded-lg"
               >
-                ðŸšª Sign Out
+                <DoorOpen size={14} className="inline mr-1" /> Sign Out
               </button>
             </div>
           </div>
@@ -370,7 +388,7 @@ export default function PatientProfile({ onLogout, onNavigate }) {
         {/* DESKTOP HEADER */}
         <header className="hidden md:flex bg-white border-b border-[#D9E3ED] px-8 py-3.5 justify-between items-center sticky top-0 z-20">
           <div className="text-xs text-gray-500 font-medium">
-            Movexa â€¢{" "}
+            Movexa •{" "}
             <span className="text-[#193B62] font-bold">Patient Portal</span>
           </div>
 
@@ -473,7 +491,7 @@ export default function PatientProfile({ onLogout, onNavigate }) {
                   }}
                   className="bg-[#087F73] hover:bg-[#06655c] text-white px-5 py-3 rounded-lg font-semibold text-xs w-full sm:w-auto"
                 >
-                  âœŽ Edit Profile
+                  <Pencil size={14} /> Edit Profile
                 </button>
               )}
             </div>
@@ -482,7 +500,7 @@ export default function PatientProfile({ onLogout, onNavigate }) {
           {/* PERSONAL INFORMATION */}
           <section className="bg-white border border-[#D9E3ED] rounded-xl p-5 md:p-6 space-y-4">
             <h3 className="font-bold text-sm border-b border-[#D9E3ED] pb-3">
-              ðŸ‘¤ Personal Information
+              <UserRound size={16} className="inline mr-2 text-[#087F73]" /> Personal Information
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -557,7 +575,7 @@ export default function PatientProfile({ onLogout, onNavigate }) {
           {/* MEDICAL INFORMATION */}
           <section className="bg-white border border-[#D9E3ED] rounded-xl p-5 md:p-6 space-y-4">
             <h3 className="font-bold text-sm border-b border-[#D9E3ED] pb-3">
-              ðŸ©º Medical Information
+              <Activity size={16} className="inline mr-2 text-[#087F73]" /> Medical Information
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -593,7 +611,7 @@ export default function PatientProfile({ onLogout, onNavigate }) {
           <section className="bg-white border border-[#D9E3ED] rounded-xl p-5 md:p-6 space-y-4">
             <div className="flex flex-wrap justify-between items-center gap-2 border-b border-[#D9E3ED] pb-3">
               <h3 className="font-bold text-sm">
-                ðŸ‘¨â€âš•ï¸ Assigned Physiotherapist
+                <Stethoscope size={16} className="inline mr-2 text-[#087F73]" /> Assigned Physiotherapist
               </h3>
               {assignedPhysiotherapist && (
                 <span className="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-3 py-1 rounded-full">
@@ -611,7 +629,7 @@ export default function PatientProfile({ onLogout, onNavigate }) {
                   <p className="text-xs text-gray-500 mt-1">
                     {assignedPhysiotherapist.qualification}
                     {assignedPhysiotherapist.specialization
-                      ? ` â€¢ ${assignedPhysiotherapist.specialization}`
+                      ? ` • ${assignedPhysiotherapist.specialization}`
                       : ""}
                   </p>
                   {assignedPhysiotherapist.clinic_name && (
@@ -636,7 +654,7 @@ export default function PatientProfile({ onLogout, onNavigate }) {
           {/* EMERGENCY CONTACT */}
           <section className="bg-white border border-[#D9E3ED] rounded-xl p-5 md:p-6 space-y-4">
             <h3 className="font-bold text-sm border-b border-[#D9E3ED] pb-3">
-              ðŸš¨ Emergency Contact
+              <Siren size={16} className="inline mr-2 text-[#087F73]" /> Emergency Contact
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -667,7 +685,7 @@ export default function PatientProfile({ onLogout, onNavigate }) {
           {/* ACCOUNT SETTINGS */}
           <section className="bg-white border border-[#D9E3ED] rounded-xl p-5 md:p-6 space-y-5">
             <h3 className="font-bold text-sm border-b border-[#D9E3ED] pb-3">
-              âš™ï¸ Account Settings
+              <Settings size={16} className="inline mr-2 text-[#087F73]" /> Account Settings
             </h3>
 
             <div className="flex flex-wrap justify-between items-center gap-3">
@@ -691,7 +709,7 @@ export default function PatientProfile({ onLogout, onNavigate }) {
                 onClick={onLogout}
                 className="mt-3 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-4 py-2 rounded-lg text-xs font-semibold"
               >
-                ðŸšª Log Out
+                <DoorOpen size={14} className="inline mr-1" /> Log Out
               </button>
             </div>
           </section>

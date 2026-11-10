@@ -1,6 +1,6 @@
 
-import React, { useState } from "react";
-import { useAuth } from "../../context/AuthContext";
+import { useState } from "react";
+import { useAuth } from "../../context/useAuth";
 
 export default function Register({ onSwitchToLogin, onRegisterSuccess }) {
   const { register } = useAuth();
