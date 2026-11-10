@@ -6,6 +6,8 @@ class Settings(BaseSettings):
     APP_NAME: str = "Movexa API"
     APP_VERSION: str = "1.0.0"
     DATABASE_URL: str = "postgresql+psycopg://postgres:password@localhost:5432/movexa"
+    MIGRATION_DATABASE_URL: str | None = None
+    SECRET_KEY: str = "movexa-dev-secret-change-me"
 
     model_config = SettingsConfigDict(
         env_file=Path(__file__).resolve().parents[2] / ".env",

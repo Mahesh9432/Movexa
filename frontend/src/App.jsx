@@ -1,24 +1,27 @@
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Dashboard from "./pages/Dashboard";
+import Session from "./pages/Session";
+import Progress from "./pages/Progress";
 
-function App() {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-950">
-      <div className="text-center p-10">
-        <h1 className="text-5xl font-bold text-cyan-400">
-          MOVEXA
-        </h1>
-
-        <p className="mt-4 text-lg text-white">
-          AI-Powered Physiotherapy & Rehabilitation
-        </p>
-
-        <div className="mt-8 rounded-xl bg-slate-800 p-6">
-          <p className="text-green-400 font-semibold">
-            Tailwind CSS is working!
-          </p>
-        </div>
-      </div>
-    </div>
-  )
+function Protected({ children }) {
+  return localStorage.getItem("token") ? children : <Navigate to="/login" replace />;
 }
 
-export default App
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/dashboard" element={<Protected><Dashboard /></Protected>} />
+        <Route path="/session" element={<Protected><Session /></Protected>} />
+        <Route path="/progress" element={<Protected><Progress /></Protected>} />
+        <Route path="/sessions" element={<Navigate to="/progress" replace />} />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
