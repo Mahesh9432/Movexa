@@ -1,4 +1,3 @@
-
 import {
   createContext,
   useCallback,
@@ -22,13 +21,25 @@ import {
 } from "../api/auth";
 
 const AuthContext = createContext(null);
+const UNAUTHORIZED_EVENT = "movexa:unauthorized";
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(getStoredToken);
   const [loading, setLoading] = useState(true);
 
+  const logout = useCallback(() => {
+    clearStoredToken();
+    setToken(null);
+    setUser(null);
+  }, []);
+
   const acceptAuthentication = useCallback((result) => {
+    if (!result?.access_token || !result?.user) {
+      throw new Error("The server returned an incomplete login response.");
+    }
+
+    // Persist first. Do not mark the user authenticated if persistence fails.
     storeToken(result.access_token);
     setToken(result.access_token);
     setUser(result.user);
@@ -53,7 +64,7 @@ export function AuthProvider({ children }) {
       } else if (role === "physio") {
         result = await registerPhysiotherapist(data);
       } else {
-        throw new Error("Invalid registration role");
+        throw new Error("Invalid registration role.");
       }
 
       return acceptAuthentication(result);
@@ -61,11 +72,17 @@ export function AuthProvider({ children }) {
     [acceptAuthentication]
   );
 
-  const logout = useCallback(() => {
-    clearStoredToken();
-    setToken(null);
-    setUser(null);
-  }, []);
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      logout();
+    };
+
+    window.addEventListener(UNAUTHORIZED_EVENT, handleUnauthorized);
+
+    return () => {
+      window.removeEventListener(UNAUTHORIZED_EVENT, handleUnauthorized);
+    };
+  }, [logout]);
 
   useEffect(() => {
     let active = true;
@@ -74,7 +91,11 @@ export function AuthProvider({ children }) {
       const savedToken = getStoredToken();
 
       if (!savedToken) {
-        setLoading(false);
+        if (active) {
+          setToken(null);
+          setUser(null);
+          setLoading(false);
+        }
         return;
       }
 
@@ -129,9 +150,7 @@ export function useAuth() {
   const context = useContext(AuthContext);
 
   if (!context) {
-    throw new Error(
-      "useAuth must be used inside AuthProvider"
-    );
+    throw new Error("useAuth must be used inside AuthProvider.");
   }
 
   return context;

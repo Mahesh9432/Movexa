@@ -4,51 +4,78 @@ import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 
 import PatientDashboard from "./pages/patient/Dashboard";
+import PatientExercises from "./pages/patient/Exercises";
+import PatientSession from "./pages/patient/Session";
 import PatientProfile from "./pages/patient/Profile";
 
 import PhysioDashboard from "./pages/physiotherapist/Dashboard";
+import PhysioPatients from "./pages/physiotherapist/Patients";
+import PhysioPrescriptions from "./pages/physiotherapist/Prescriptions";
 import PhysioProfile from "./pages/physiotherapist/Profile";
 
 import { useAuth } from "./context/AuthContext";
 
 const pageNames = {
-  exercises: "My Exercises",
   library: "Exercise Library",
   progress: "Progress",
   appointments: "Appointments",
   care: "Care Team",
 };
 
+const patientViews = new Set([
+  "dashboard",
+  "exercises",
+  "session",
+  "profile",
+]);
+
+const physiotherapistViews = new Set([
+  "physio-dashboard",
+  "physio-patients",
+  "physio-prescriptions",
+  "physio-profile",
+]);
+
 export default function App() {
   const { user, loading, isAuthenticated, logout } = useAuth();
 
   const [currentView, setCurrentView] = useState("login");
+  const [sessionPrescriptionId, setSessionPrescriptionId] = useState("");
 
   const isPhysio = user?.role === "PHYSIOTHERAPIST";
+  const dashboardView = isPhysio ? "physio-dashboard" : "dashboard";
 
   useEffect(() => {
     if (loading) return;
 
     if (!isAuthenticated) {
       setCurrentView("login");
+      setSessionPrescriptionId("");
       return;
     }
 
-    setCurrentView(isPhysio ? "physio-dashboard" : "dashboard");
-  }, [loading, isAuthenticated, isPhysio]);
+    setCurrentView(dashboardView);
+  }, [loading, isAuthenticated, dashboardView]);
 
   const handleLogout = () => {
     logout();
+    setSessionPrescriptionId("");
     setCurrentView("login");
   };
 
-  const handleNavigate = (view) => {
+  const handleNavigate = (view, prescriptionId = null) => {
+    if (view === "session") {
+      setSessionPrescriptionId(
+        prescriptionId ? String(prescriptionId) : ""
+      );
+    }
+
     setCurrentView(view);
   };
 
   const handleLoginSuccess = (authenticatedUser) => {
     setCurrentView(
-      authenticatedUser.role === "PHYSIOTHERAPIST"
+      authenticatedUser?.role === "PHYSIOTHERAPIST"
         ? "physio-dashboard"
         : "dashboard"
     );
@@ -66,6 +93,18 @@ export default function App() {
       </div>
     );
   }
+
+  const isAllowedAuthenticatedView =
+    isAuthenticated &&
+    (isPhysio
+      ? physiotherapistViews.has(currentView) || Boolean(pageNames[currentView])
+      : patientViews.has(currentView) || Boolean(pageNames[currentView]));
+
+  const shouldShowAuthenticatedFallback =
+    isAuthenticated && !isAllowedAuthenticatedView;
+
+  const shouldShowLoginFallback =
+    !isAuthenticated && currentView !== "register";
 
   return (
     <div className="min-h-screen bg-[#F4F7FB]">
@@ -90,6 +129,21 @@ export default function App() {
         />
       )}
 
+      {isAuthenticated && !isPhysio && currentView === "exercises" && (
+        <PatientExercises
+          onLogout={handleLogout}
+          onNavigate={handleNavigate}
+        />
+      )}
+
+      {isAuthenticated && !isPhysio && currentView === "session" && (
+        <PatientSession
+          onLogout={handleLogout}
+          onNavigate={handleNavigate}
+          initialPrescriptionId={sessionPrescriptionId}
+        />
+      )}
+
       {isAuthenticated && !isPhysio && currentView === "profile" && (
         <PatientProfile
           onLogout={handleLogout}
@@ -99,6 +153,20 @@ export default function App() {
 
       {isAuthenticated && isPhysio && currentView === "physio-dashboard" && (
         <PhysioDashboard
+          onLogout={handleLogout}
+          onNavigate={handleNavigate}
+        />
+      )}
+
+      {isAuthenticated && isPhysio && currentView === "physio-patients" && (
+        <PhysioPatients
+          onLogout={handleLogout}
+          onNavigate={handleNavigate}
+        />
+      )}
+
+      {isAuthenticated && isPhysio && currentView === "physio-prescriptions" && (
+        <PhysioPrescriptions
           onLogout={handleLogout}
           onNavigate={handleNavigate}
         />
@@ -123,17 +191,36 @@ export default function App() {
             </p>
 
             <button
-              onClick={() =>
-                setCurrentView(
-                  isPhysio ? "physio-dashboard" : "dashboard"
-                )
-              }
-              className="mt-5 bg-[#087F73] hover:bg-[#06655c] text-white px-5 py-2.5 rounded-lg text-sm font-semibold cursor-pointer"
+              onClick={() => setCurrentView(dashboardView)}
+              className="mt-5 bg-[#087F73] hover:bg-[#06655c] text-white px-5 py-2.5 rounded-lg text-sm font-semibold"
             >
               Back to Dashboard
             </button>
           </div>
         </div>
+      )}
+
+      {shouldShowAuthenticatedFallback && (
+        <>
+          {isPhysio ? (
+            <PhysioDashboard
+              onLogout={handleLogout}
+              onNavigate={handleNavigate}
+            />
+          ) : (
+            <PatientDashboard
+              onLogout={handleLogout}
+              onNavigate={handleNavigate}
+            />
+          )}
+        </>
+      )}
+
+      {shouldShowLoginFallback && (
+        <Login
+          onSwitchToRegister={() => setCurrentView("register")}
+          onLoginSuccess={handleLoginSuccess}
+        />
       )}
     </div>
   );

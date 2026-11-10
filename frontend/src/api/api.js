@@ -1,34 +1,66 @@
-
 const API_BASE_URL = (
   import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000"
 ).replace(/\/+$/, "");
 
 const TOKEN_KEY = "movexa_access_token";
+const UNAUTHORIZED_EVENT = "movexa:unauthorized";
 
 export function getStoredToken() {
-  return localStorage.getItem(TOKEN_KEY);
+  try {
+    return window.localStorage.getItem(TOKEN_KEY);
+  } catch {
+    // Storage may be unavailable in restricted browser contexts.
+    return null;
+  }
 }
 
 export function storeToken(token) {
-  localStorage.setItem(TOKEN_KEY, token);
+  if (!token || typeof token !== "string") {
+    throw new Error("The server did not return a valid access token.");
+  }
+
+  try {
+    window.localStorage.setItem(TOKEN_KEY, token);
+  } catch {
+    throw new Error(
+      "Movexa could not save your login session in this browser. Check your browser storage settings and try again."
+    );
+  }
 }
 
 export function clearStoredToken() {
-  localStorage.removeItem(TOKEN_KEY);
+  try {
+    window.localStorage.removeItem(TOKEN_KEY);
+  } catch {
+    // Continue clearing in-memory authentication even if storage is blocked.
+  }
+}
+
+function notifyUnauthorized() {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent(UNAUTHORIZED_EVENT));
+  }
+}
+
+function isAuthenticationRequest(path) {
+  return (
+    path === "/api/auth/login" ||
+    path === "/api/auth/register/patient" ||
+    path === "/api/auth/register/physiotherapist"
+  );
 }
 
 export async function apiRequest(path, options = {}) {
   const token = getStoredToken();
-
   const headers = {
     Accept: "application/json",
     ...options.headers,
   };
 
-  if (
-    options.body &&
-    !(options.body instanceof FormData)
-  ) {
+  const isFormData =
+    typeof FormData !== "undefined" && options.body instanceof FormData;
+
+  if (options.body && !isFormData) {
     headers["Content-Type"] = "application/json";
   }
 
@@ -49,15 +81,24 @@ export async function apiRequest(path, options = {}) {
     );
   }
 
+  if (response.status === 401 && token && !isAuthenticationRequest(path)) {
+    notifyUnauthorized();
+  }
+
   if (response.status === 204) {
     return null;
   }
 
   const contentType = response.headers.get("content-type") || "";
+  let data;
 
-  const data = contentType.includes("application/json")
-    ? await response.json()
-    : await response.text();
+  try {
+    data = contentType.includes("application/json")
+      ? await response.json()
+      : await response.text();
+  } catch {
+    throw new Error("The server returned an unreadable response.");
+  }
 
   if (!response.ok) {
     const detail =

@@ -2,12 +2,12 @@ import React, { useEffect, useState } from "react";
 import { getPatientProfile, updatePatientProfile } from "../../api/profile";
 
 const navItems = [
-  { name: "Dashboard", icon: "📊", view: "dashboard" },
-  { name: "My Exercises", icon: "📋", view: "exercises" },
-  { name: "Exercise Library", icon: "📚", view: "library" },
-  { name: "Progress", icon: "📈", view: "progress" },
-  { name: "Appointments", icon: "📅", view: "appointments" },
-  { name: "Profile", icon: "👤", view: "profile" },
+  { name: "Dashboard", icon: "ðŸ“Š", view: "dashboard" },
+  { name: "My Exercises", icon: "ðŸ“‹", view: "exercises" },
+  { name: "Exercise Library", icon: "ðŸ“š", view: "library" },
+  { name: "Progress", icon: "ðŸ“ˆ", view: "progress" },
+  { name: "Appointments", icon: "ðŸ“…", view: "appointments" },
+  { name: "Profile", icon: "ðŸ‘¤", view: "profile" },
 ];
 
 const emptyProfile = {
@@ -65,6 +65,44 @@ function mapProfileResponse(response) {
 
 function displayValue(value) {
   return value?.trim() ? value : "Not provided";
+}
+
+function Field({
+  label,
+  name,
+  value,
+  type = "text",
+  editable = true,
+  isEditing,
+  onChange,
+}) {
+  return (
+    <div>
+      <label
+        htmlFor={name}
+        className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1"
+      >
+        {label}
+      </label>
+
+      {isEditing && editable ? (
+        <input
+          id={name}
+          type={type}
+          name={name}
+          value={value ?? ""}
+          onChange={onChange}
+          className="w-full bg-[#F4F7FB] border border-[#D9E3ED] px-3 py-2 rounded-lg text-xs font-semibold text-[#193B62] focus:outline-none focus:border-[#087F73]"
+        />
+      ) : (
+        <p className="text-sm font-semibold text-[#193B62] break-words">
+          {type === "date" && value
+            ? formatDate(value)
+            : displayValue(value)}
+        </p>
+      )}
+    </div>
+  );
 }
 
 export default function PatientProfile({ onLogout, onNavigate }) {
@@ -182,40 +220,6 @@ export default function PatientProfile({ onLogout, onNavigate }) {
     }
   };
 
-  const Field = ({
-    label,
-    name,
-    value,
-    type = "text",
-    editable = true,
-  }) => (
-    <div>
-      <label
-        htmlFor={name}
-        className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1"
-      >
-        {label}
-      </label>
-
-      {isEditing && editable ? (
-        <input
-          id={name}
-          type={type}
-          name={name}
-          value={value ?? ""}
-          onChange={handleInputChange}
-          className="w-full bg-[#F4F7FB] border border-[#D9E3ED] px-3 py-2 rounded-lg text-xs font-semibold text-[#193B62] focus:outline-none focus:border-[#087F73]"
-        />
-      ) : (
-        <p className="text-sm font-semibold text-[#193B62] break-words">
-          {type === "date" && value
-            ? formatDate(value)
-            : displayValue(value)}
-        </p>
-      )}
-    </div>
-  );
-
   const renderNavigation = () => (
     <nav className="space-y-1.5">
       {navItems.map((item) => (
@@ -274,7 +278,7 @@ export default function PatientProfile({ onLogout, onNavigate }) {
         <div>
           <div className="flex items-center gap-3 mb-8">
             <div className="bg-[#087F73] text-white font-bold text-xs px-2.5 py-1 rounded">
-              MOVEẊA
+              MOVEáºŠA
             </div>
             <span className="font-bold text-xs text-gray-500 uppercase tracking-wider">
               Telemetry Rehab
@@ -298,7 +302,7 @@ export default function PatientProfile({ onLogout, onNavigate }) {
             onClick={onLogout}
             className="w-full bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-semibold py-2 rounded-lg"
           >
-            🚪 Sign Out
+            ðŸšª Sign Out
           </button>
         </div>
       </aside>
@@ -313,10 +317,10 @@ export default function PatientProfile({ onLogout, onNavigate }) {
               className="text-xl"
               aria-label="Open navigation"
             >
-              ☰
+              â˜°
             </button>
             <span className="bg-[#087F73] text-white font-bold text-xs px-2 py-1 rounded">
-              MOVEẊA
+              MOVEáºŠA
             </span>
           </div>
 
@@ -340,14 +344,14 @@ export default function PatientProfile({ onLogout, onNavigate }) {
               <div>
                 <div className="flex justify-between items-center mb-8">
                   <span className="bg-[#087F73] text-white font-bold text-xs px-2.5 py-1 rounded">
-                    MOVEẊA
+                    MOVEáºŠA
                   </span>
                   <button
                     onClick={() => setMobileMenuOpen(false)}
                     className="text-xl"
                     aria-label="Close navigation"
                   >
-                    ✕
+                    âœ•
                   </button>
                 </div>
                 {renderNavigation()}
@@ -357,7 +361,7 @@ export default function PatientProfile({ onLogout, onNavigate }) {
                 onClick={onLogout}
                 className="w-full bg-red-50 text-red-600 border border-red-200 text-xs font-semibold py-2.5 rounded-lg"
               >
-                🚪 Sign Out
+                ðŸšª Sign Out
               </button>
             </div>
           </div>
@@ -366,7 +370,7 @@ export default function PatientProfile({ onLogout, onNavigate }) {
         {/* DESKTOP HEADER */}
         <header className="hidden md:flex bg-white border-b border-[#D9E3ED] px-8 py-3.5 justify-between items-center sticky top-0 z-20">
           <div className="text-xs text-gray-500 font-medium">
-            Movexa •{" "}
+            Movexa â€¢{" "}
             <span className="text-[#193B62] font-bold">Patient Portal</span>
           </div>
 
@@ -469,7 +473,7 @@ export default function PatientProfile({ onLogout, onNavigate }) {
                   }}
                   className="bg-[#087F73] hover:bg-[#06655c] text-white px-5 py-3 rounded-lg font-semibold text-xs w-full sm:w-auto"
                 >
-                  ✎ Edit Profile
+                  âœŽ Edit Profile
                 </button>
               )}
             </div>
@@ -478,7 +482,7 @@ export default function PatientProfile({ onLogout, onNavigate }) {
           {/* PERSONAL INFORMATION */}
           <section className="bg-white border border-[#D9E3ED] rounded-xl p-5 md:p-6 space-y-4">
             <h3 className="font-bold text-sm border-b border-[#D9E3ED] pb-3">
-              👤 Personal Information
+              ðŸ‘¤ Personal Information
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -486,12 +490,16 @@ export default function PatientProfile({ onLogout, onNavigate }) {
                 label="Full Name"
                 name="full_name"
                 value={profileData.full_name}
+                isEditing={isEditing}
+                onChange={handleInputChange}
               />
               <Field
                 label="Date of Birth"
                 name="date_of_birth"
                 value={profileData.date_of_birth}
                 type="date"
+                isEditing={isEditing}
+                onChange={handleInputChange}
               />
 
               <div>
@@ -530,11 +538,15 @@ export default function PatientProfile({ onLogout, onNavigate }) {
                 name="email"
                 value={profileData.email}
                 editable={false}
+                isEditing={isEditing}
+                onChange={handleInputChange}
               />
               <Field
                 label="Phone Number"
                 name="phone_number"
                 value={profileData.phone_number}
+                isEditing={isEditing}
+                onChange={handleInputChange}
               />
             </div>
             <p className="text-[11px] text-gray-400">
@@ -545,7 +557,7 @@ export default function PatientProfile({ onLogout, onNavigate }) {
           {/* MEDICAL INFORMATION */}
           <section className="bg-white border border-[#D9E3ED] rounded-xl p-5 md:p-6 space-y-4">
             <h3 className="font-bold text-sm border-b border-[#D9E3ED] pb-3">
-              🩺 Medical Information
+              ðŸ©º Medical Information
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -554,12 +566,16 @@ export default function PatientProfile({ onLogout, onNavigate }) {
                 name="injury"
                 value={profileData.injury}
                 editable={false}
+                isEditing={isEditing}
+                onChange={handleInputChange}
               />
               <Field
                 label="Affected Body Part"
                 name="affected_area"
                 value={profileData.affected_area}
                 editable={false}
+                isEditing={isEditing}
+                onChange={handleInputChange}
               />
               <Field
                 label="Treatment Start Date"
@@ -567,6 +583,8 @@ export default function PatientProfile({ onLogout, onNavigate }) {
                 value={profileData.treatment_start_date}
                 type="date"
                 editable={false}
+                isEditing={isEditing}
+                onChange={handleInputChange}
               />
             </div>
           </section>
@@ -575,7 +593,7 @@ export default function PatientProfile({ onLogout, onNavigate }) {
           <section className="bg-white border border-[#D9E3ED] rounded-xl p-5 md:p-6 space-y-4">
             <div className="flex flex-wrap justify-between items-center gap-2 border-b border-[#D9E3ED] pb-3">
               <h3 className="font-bold text-sm">
-                👨‍⚕️ Assigned Physiotherapist
+                ðŸ‘¨â€âš•ï¸ Assigned Physiotherapist
               </h3>
               {assignedPhysiotherapist && (
                 <span className="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-3 py-1 rounded-full">
@@ -593,7 +611,7 @@ export default function PatientProfile({ onLogout, onNavigate }) {
                   <p className="text-xs text-gray-500 mt-1">
                     {assignedPhysiotherapist.qualification}
                     {assignedPhysiotherapist.specialization
-                      ? ` • ${assignedPhysiotherapist.specialization}`
+                      ? ` â€¢ ${assignedPhysiotherapist.specialization}`
                       : ""}
                   </p>
                   {assignedPhysiotherapist.clinic_name && (
@@ -618,7 +636,7 @@ export default function PatientProfile({ onLogout, onNavigate }) {
           {/* EMERGENCY CONTACT */}
           <section className="bg-white border border-[#D9E3ED] rounded-xl p-5 md:p-6 space-y-4">
             <h3 className="font-bold text-sm border-b border-[#D9E3ED] pb-3">
-              🚨 Emergency Contact
+              ðŸš¨ Emergency Contact
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -626,16 +644,22 @@ export default function PatientProfile({ onLogout, onNavigate }) {
                 label="Contact Name"
                 name="emergency_contact_name"
                 value={profileData.emergency_contact_name}
+                isEditing={isEditing}
+                onChange={handleInputChange}
               />
               <Field
                 label="Relationship"
                 name="emergency_contact_relationship"
                 value={profileData.emergency_contact_relationship}
+                isEditing={isEditing}
+                onChange={handleInputChange}
               />
               <Field
                 label="Phone Number"
                 name="emergency_contact_phone"
                 value={profileData.emergency_contact_phone}
+                isEditing={isEditing}
+                onChange={handleInputChange}
               />
             </div>
           </section>
@@ -643,7 +667,7 @@ export default function PatientProfile({ onLogout, onNavigate }) {
           {/* ACCOUNT SETTINGS */}
           <section className="bg-white border border-[#D9E3ED] rounded-xl p-5 md:p-6 space-y-5">
             <h3 className="font-bold text-sm border-b border-[#D9E3ED] pb-3">
-              ⚙️ Account Settings
+              âš™ï¸ Account Settings
             </h3>
 
             <div className="flex flex-wrap justify-between items-center gap-3">
@@ -667,7 +691,7 @@ export default function PatientProfile({ onLogout, onNavigate }) {
                 onClick={onLogout}
                 className="mt-3 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-4 py-2 rounded-lg text-xs font-semibold"
               >
-                🚪 Log Out
+                ðŸšª Log Out
               </button>
             </div>
           </section>
