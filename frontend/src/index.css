@@ -1,2 +1,26 @@
-
 @import "tailwindcss";
+
+@theme {
+  --color-movexa-bg: #F4F7FB;
+  --color-movexa-surface: #FFFFFF;
+  --color-movexa-primary: #087F73;
+  --color-movexa-primary-hover: #06655c;
+  --color-movexa-navy: #193B62;
+  --color-movexa-secondary-bg: #EAF1F8;
+  --color-movexa-border: #D9E3ED;
+
+  --radius-movexa: 0.75rem;
+
+  --shadow-movexa: 0 4px 12px rgba(25, 59, 98, 0.05);
+  --shadow-movexa-lg: 0 8px 24px rgba(25, 59, 98, 0.08);
+}
+
+@layer base {
+  body {
+    background-color: var(--color-movexa-bg);
+    color: var(--color-movexa-navy);
+    -webkit-font-smoothing: antialiased;
+    margin: 0;
+    padding: 0;
+  }
+}
