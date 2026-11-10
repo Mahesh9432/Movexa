@@ -5,7 +5,6 @@ const navItems = [
   { name: 'My Exercises', icon: '📋', view: 'exercises' },
   { name: 'Exercise Library', icon: '📚', view: 'library' },
   { name: 'Progress', icon: '📈', view: 'progress' },
-  { name: 'Appointments', icon: '📅', view: 'appointments' },
   { name: 'Profile', icon: '👤', view: 'profile' },
 ];
 

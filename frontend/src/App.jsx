@@ -6,6 +6,8 @@ import Register from './pages/auth/Register';
 import PatientDashboard from './pages/patient/Dashboard';
 import PatientProfile from './pages/patient/Profile';
 import PatientExercises from './pages/patient/Exercises';
+import ExerciseLibrary from './pages/patient/ExerciseLibrary';
+import PatientProgress from './pages/patient/Progress';
 import PatientSession from './pages/patient/Session';
 
 // Physiotherapist Pages
@@ -15,10 +17,8 @@ import PhysioPatients from './pages/physiotherapist/Patients';
 import Prescriptions from './pages/physiotherapist/Prescriptions';
 
 const pageNames = {
-  library: 'Exercise Library',
   appointments: 'Appointments',
   care: 'Care Team',
-  progress: 'Progress',
 };
 
 export default function App() {
@@ -254,6 +254,12 @@ export default function App() {
       )}
       {currentView === 'exercises' && (
         <PatientExercises onLogout={handleLogout} onNavigate={handleNavigate} />
+      )}
+      {currentView === 'library' && (
+        <ExerciseLibrary onLogout={handleLogout} onNavigate={handleNavigate} />
+      )}
+      {currentView === 'progress' && (
+        <PatientProgress onLogout={handleLogout} onNavigate={handleNavigate} />
       )}
       {currentView === 'session' && (
         <PatientSession onLogout={handleLogout} onNavigate={handleNavigate} />

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import PhysioLayout from '../../layouts/PhysioLayout';
 import Modal from '../../components/common/Modal';
 
-export default function PhysioPatients({ onLogout, onNavigate }) {
+export default function PhysioPatients({ patients, setPatients, onLogout, onNavigate }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedPatientForCarePlan, setSelectedPatientForCarePlan] = useState(null);
@@ -17,128 +17,6 @@ export default function PhysioPatients({ onLogout, onNavigate }) {
     affected_area: '',
     treatment_start: new Date().toISOString().split('T')[0],
   });
-
-  const [patients, setPatients] = useState([
-    {
-      id: 'PT-884291',
-      name: 'Sarah Michelle Jenkins',
-      email: 'sarah.jenkins@example.com',
-      phone: '+1 (555) 234-8901',
-      condition: 'Post-Operative ACL Reconstruction',
-      affected_area: 'Left Knee Joint',
-      treatment_start: '2026-09-26',
-      adherence: '85%',
-      kinematic_score: '96%',
-      status: 'Active • Primary Care',
-      last_session: 'Today, 08:14 AM',
-      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
-      current_prescription: {
-        title: 'Phase 2: Active ROM & Quad Strengthening',
-        plan: 'Post-Op Knee Rehabilitation Protocol',
-        start_date: '2026-10-12',
-        duration: '4 Weeks',
-        exercises: [
-          {
-            id: 'EX-01',
-            name: 'Isometric Quad Sets with Towel Roll',
-            category: 'Knee Extension',
-            sets: 3,
-            reps: 10,
-            hold: '10-sec Hold',
-            rest: '30s Rest',
-            target_rom: '0° Full Extension',
-            notes: 'Complete quad lock before relaxing; keep toes pointing upwards.',
-            thumbnail: 'https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=300&auto=format&fit=crop&q=80',
-          },
-          {
-            id: 'EX-02',
-            name: 'Terminal Knee Extensions (TKE)',
-            category: 'Resistance Band',
-            sets: 3,
-            reps: 12,
-            hold: '2s Hold • 3s Return',
-            rest: '45s Rest',
-            target_rom: '0° - 90° ROM',
-            notes: 'Slow controlled return under band tension.',
-            thumbnail: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=300&auto=format&fit=crop&q=80',
-          },
-        ]
-      },
-      history: [
-        { id: 'RX-101', title: 'Phase 1: Initial Post-Op Mobility', date: '2026-09-26 to 2026-10-11', exercises_count: 3, status: 'Completed', adherence: '91%' }
-      ]
-    },
-    {
-      id: 'PT-992104',
-      name: 'James Anderson',
-      email: 'james.anderson@example.com',
-      phone: '+1 (555) 432-1982',
-      condition: 'Rotator Cuff Tendinopathy',
-      affected_area: 'Right Shoulder',
-      treatment_start: '2026-10-02',
-      adherence: '78%',
-      kinematic_score: '88%',
-      status: 'Active • In Progress',
-      last_session: 'Yesterday, 02:30 PM',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-      current_prescription: {
-        title: 'Shoulder Mobility & Rotator Cuff Stability',
-        plan: 'Rotator Cuff Rehabilitation Protocol',
-        start_date: '2026-10-05',
-        duration: '4 Weeks',
-        exercises: [
-          {
-            id: 'EX-03',
-            name: 'External Rotation with Resistance Band',
-            category: 'Shoulder Stability',
-            sets: 3,
-            reps: 15,
-            hold: '1s Hold',
-            rest: '30s Rest',
-            target_rom: '0° - 45° External Rotation',
-            notes: 'Keep elbow pinned to your side.',
-            thumbnail: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=300&auto=format&fit=crop&q=80',
-          }
-        ]
-      },
-      history: []
-    },
-    {
-      id: 'PT-334102',
-      name: 'Emily Rose',
-      email: 'emily.rose@example.com',
-      phone: '+1 (555) 892-3019',
-      condition: 'Chronic Lower Back Pain',
-      affected_area: 'Lumbar Spine',
-      treatment_start: '2026-09-15',
-      adherence: '92%',
-      kinematic_score: '94%',
-      status: 'Active • On Track',
-      last_session: '3 days ago',
-      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&auto=format&fit=crop&q=80',
-      current_prescription: {
-        title: 'Lumbar Spine Core Stabilization',
-        plan: 'Core Strengthening Protocol',
-        start_date: '2026-09-20',
-        duration: '6 Weeks',
-        exercises: [
-          {
-            id: 'EX-04',
-            name: 'Bird-Dog Core Hold',
-            category: 'Core Stability',
-            sets: 3,
-            reps: 10,
-            hold: '5-sec Hold',
-            rest: '30s Rest',
-            target_rom: 'Neutral Spine Alignment',
-            notes: 'Avoid lower back arching.',
-            thumbnail: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=300&auto=format&fit=crop&q=80',
-          }
-        ]
-      },
-      history: []
-    }
-  ]);
 
   const handleAddPatient = (e) => {
     e.preventDefault();
@@ -157,18 +35,33 @@ export default function PhysioPatients({ onLogout, onNavigate }) {
       status: 'Active • Newly Assigned',
       last_session: 'Just registered',
       avatar: null,
-      current_prescription: { title: 'Initial Assessment Protocol', plan: 'General Care', start_date: newPatient.treatment_start, duration: '2 Weeks', exercises: [] },
+      current_prescription: { 
+        title: 'Initial Assessment Protocol', 
+        plan: 'General Care', 
+        start_date: newPatient.treatment_start, 
+        duration: '2 Weeks', 
+        exercises: [] 
+      },
       history: []
     };
 
-    setPatients([createdPatient, ...patients]);
-    setNewPatient({ name: '', email: '', phone: '', date_of_birth: '', gender: 'Female', condition: '', affected_area: '', treatment_start: new Date().toISOString().split('T')[0] });
+    setPatients(prev => [createdPatient, ...prev]);
+    setNewPatient({ 
+      name: '', 
+      email: '', 
+      phone: '', 
+      date_of_birth: '', 
+      gender: 'Female', 
+      condition: '', 
+      affected_area: '', 
+      treatment_start: new Date().toISOString().split('T')[0] 
+    });
     setShowAddModal(false);
   };
 
   const handleRemovePatient = (id) => {
     if (window.confirm('Are you sure you want to remove this patient from your active roster?')) {
-      setPatients(patients.filter(p => p.id !== id));
+      setPatients(prev => prev.filter(p => p.id !== id));
       if (selectedPatientForCarePlan?.id === id) {
         setSelectedPatientForCarePlan(null);
       }
@@ -186,19 +79,26 @@ export default function PhysioPatients({ onLogout, onNavigate }) {
       {selectedPatientForCarePlan ? (
         <div className="space-y-6 animate-fadeIn">
           
-          <div className="flex flex-wrap justify-between items-center gap-4">
-            <div className="flex items-center gap-3">
+          {/* CLEAN HEADER WITH ARROW & SINGLE ACTION BUTTON */}
+          <div className="flex flex-wrap justify-between items-center gap-4 border-b border-[#D9E3ED] pb-4">
+            <div className="flex items-center gap-4">
               <button
                 onClick={() => setSelectedPatientForCarePlan(null)}
-                className="bg-white border border-[#D9E3ED] hover:bg-gray-50 text-[#193B62] text-xs font-bold px-4 py-2.5 rounded-xl transition-all cursor-pointer shadow-xs"
+                className="text-gray-500 hover:text-[#193B62] font-bold text-base px-2 py-1 rounded-lg border border-[#D9E3ED] bg-white shadow-xs cursor-pointer"
+                title="Back to Roster"
               >
-                ← Back to Patients Roster
+                ←
               </button>
               <div>
-                <span className="bg-[#EAF1F8] text-[#087F73] text-[10px] font-bold px-2.5 py-0.5 rounded-md font-mono">
-                  {selectedPatientForCarePlan.id}
-                </span>
-                <h1 className="text-2xl md:text-3xl font-bold mt-0.5 text-[#20252B]">
+                <div className="flex items-center gap-2.5 mb-0.5">
+                  <span className="bg-[#EAF1F8] text-[#087F73] text-[10px] font-bold px-2 py-0.5 rounded-md font-mono">
+                    {selectedPatientForCarePlan.id}
+                  </span>
+                  <span className="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full">
+                    {selectedPatientForCarePlan.status}
+                  </span>
+                </div>
+                <h1 className="text-2xl md:text-3xl font-bold text-[#20252B]">
                   {selectedPatientForCarePlan.name}
                 </h1>
               </div>
@@ -213,12 +113,12 @@ export default function PhysioPatients({ onLogout, onNavigate }) {
           </div>
 
           {/* OVERVIEW METRICS */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-white border border-[#D9E3ED] rounded-2xl p-5 shadow-xs space-y-2 md:col-span-2">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-white border border-[#D9E3ED] rounded-2xl p-5 shadow-xs space-y-2">
               <p className="text-[10px] uppercase font-bold text-[#087F73]">Clinical Overview</p>
               <h2 className="text-base font-bold text-[#193B62]">{selectedPatientForCarePlan.condition}</h2>
               <p className="text-xs text-gray-500">Affected Area: <strong className="text-[#193B62]">{selectedPatientForCarePlan.affected_area}</strong></p>
-              <div className="pt-2 flex flex-wrap gap-4 text-xs text-gray-500 border-t border-gray-100">
+              <div className="pt-2 flex flex-wrap gap-3 text-[11px] text-gray-500 border-t border-gray-100">
                 <span>📞 {selectedPatientForCarePlan.phone}</span>
                 <span>✉️ {selectedPatientForCarePlan.email}</span>
                 <span>📅 Started: {selectedPatientForCarePlan.treatment_start}</span>
@@ -246,45 +146,49 @@ export default function PhysioPatients({ onLogout, onNavigate }) {
                   Active Prescription Routine
                 </span>
                 <h2 className="text-lg font-bold text-[#193B62] mt-1">{selectedPatientForCarePlan.current_prescription.title}</h2>
-                <p className="text-xs text-gray-500">{selectedPatientForCarePlan.current_prescription.plan} • Started {selectedPatientForCarePlan.current_prescription.start_date} ({selectedPatientForCarePlan.current_prescription.duration})</p>
+                <p className="text-xs text-gray-500">
+                  {selectedPatientForCarePlan.current_prescription.plan} • Started {selectedPatientForCarePlan.current_prescription.start_date} ({selectedPatientForCarePlan.current_prescription.duration})
+                </p>
               </div>
             </div>
 
             <div className="space-y-3">
               <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500">Assigned Exercises</h3>
               
-              {selectedPatientForCarePlan.current_prescription.exercises.length > 0 ? (
+              {selectedPatientForCarePlan.current_prescription.exercises && selectedPatientForCarePlan.current_prescription.exercises.length > 0 ? (
                 <div className="grid grid-cols-1 gap-3">
                   {selectedPatientForCarePlan.current_prescription.exercises.map((ex, index) => (
-                    <div key={ex.id} className="bg-[#F4F7FB] border border-[#D9E3ED] rounded-xl p-4 flex flex-col md:flex-row gap-4 items-center">
-                      <img src={ex.thumbnail} alt={ex.name} className="w-full md:w-32 h-20 rounded-lg object-cover border border-[#D9E3ED] shrink-0" />
+                    <div key={ex.id || index} className="bg-[#F4F7FB] border border-[#D9E3ED] rounded-xl p-4 flex flex-col md:flex-row gap-4 items-center">
+                      {ex.thumbnail && (
+                        <img src={ex.thumbnail} alt={ex.name} className="w-full md:w-32 h-20 rounded-lg object-cover border border-[#D9E3ED] shrink-0" />
+                      )}
                       
-                      <div className="flex-1 space-y-1 w-full">
+                      <div className="flex-1 space-y-2 w-full">
                         <div className="flex justify-between items-center">
-                          <span className="text-[10px] font-bold text-[#087F73] uppercase">{ex.category}</span>
+                          <span className="text-[10px] font-bold text-[#087F73] uppercase">{ex.category || 'General'}</span>
                           <span className="text-xs text-gray-400 font-mono">Exercise #{index + 1}</span>
                         </div>
                         <h4 className="font-bold text-sm text-[#193B62]">{ex.name}</h4>
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-xs">
-                          <div className="bg-white px-2.5 py-1.5 rounded-lg border border-[#D9E3ED]">
-                            <span className="text-gray-400 block text-[10px]">Volume</span>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                          <div className="bg-white px-3 py-2 rounded-lg border border-[#D9E3ED]">
+                            <span className="text-gray-400 block text-[10px] uppercase font-bold">Volume</span>
                             <strong className="text-[#193B62]">{ex.sets} Sets × {ex.reps} Reps</strong>
                           </div>
-                          <div className="bg-white px-2.5 py-1.5 rounded-lg border border-[#D9E3ED]">
-                            <span className="text-gray-400 block text-[10px]">Hold</span>
+                          <div className="bg-white px-3 py-2 rounded-lg border border-[#D9E3ED]">
+                            <span className="text-gray-400 block text-[10px] uppercase font-bold">Hold</span>
                             <strong className="text-[#193B62]">{ex.hold}</strong>
                           </div>
-                          <div className="bg-white px-2.5 py-1.5 rounded-lg border border-[#D9E3ED]">
-                            <span className="text-gray-400 block text-[10px]">Rest</span>
-                            <strong className="text-[#193B62]">{ex.rest}</strong>
+                          <div className="bg-white px-3 py-2 rounded-lg border border-[#D9E3ED]">
+                            <span className="text-gray-400 block text-[10px] uppercase font-bold">Rest</span>
+                            <strong className="text-[#193B62]">{ex.rest || '30s'}</strong>
                           </div>
-                          <div className="bg-white px-2.5 py-1.5 rounded-lg border border-[#D9E3ED]">
-                            <span className="text-gray-400 block text-[10px]">Target ROM</span>
-                            <strong className="text-[#087F73]">{ex.target_rom}</strong>
+                          <div className="bg-white px-3 py-2 rounded-lg border border-[#D9E3ED]">
+                            <span className="text-gray-400 block text-[10px] uppercase font-bold">Target ROM</span>
+                            <strong className="text-[#087F73]">{ex.target_rom || ex.rom || 'Standard'}</strong>
                           </div>
                         </div>
-                        <p className="text-xs text-gray-500 pt-1">
-                          <strong className="text-[#193B62]">Physio Note:</strong> {ex.notes}
+                        <p className="text-xs text-gray-500">
+                          <strong className="text-[#193B62]">Physio Note:</strong> {ex.notes || 'Maintain strict form.'}
                         </p>
                       </div>
                     </div>
@@ -300,7 +204,7 @@ export default function PhysioPatients({ onLogout, onNavigate }) {
           <div className="bg-white border border-[#D9E3ED] rounded-2xl p-6 shadow-xs space-y-4">
             <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500">Treatment History</h3>
             
-            {selectedPatientForCarePlan.history.length > 0 ? (
+            {selectedPatientForCarePlan.history && selectedPatientForCarePlan.history.length > 0 ? (
               <div className="space-y-3">
                 {selectedPatientForCarePlan.history.map((h) => (
                   <div key={h.id} className="border border-[#D9E3ED] rounded-xl p-4 flex justify-between items-center bg-gray-50">
@@ -322,16 +226,6 @@ export default function PhysioPatients({ onLogout, onNavigate }) {
             ) : (
               <p className="text-xs text-gray-400 py-2">No prior archived prescriptions found for this patient.</p>
             )}
-          </div>
-
-          {/* BOTTOM ADD PRESCRIPTION BUTTON */}
-          <div className="pt-2 flex justify-end">
-            <button
-              onClick={() => onNavigate('physio-prescriptions', selectedPatientForCarePlan.name)}
-              className="bg-[#087F73] hover:bg-[#06655c] text-white text-xs font-bold px-6 py-3.5 rounded-xl transition-all cursor-pointer shadow-md flex items-center gap-2"
-            >
-              <span>＋</span> Add Prescription for {selectedPatientForCarePlan.name}
-            </button>
           </div>
 
         </div>
@@ -356,18 +250,48 @@ export default function PhysioPatients({ onLogout, onNavigate }) {
 
           <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} title="Register & Assign New Patient">
             <form onSubmit={handleAddPatient} className="space-y-4 text-xs">
-              <div>
-                <label className="block font-semibold text-[#193B62] mb-1">Full Name</label>
-                <input type="text" required placeholder="Sarah Jenkins" value={newPatient.name} onChange={(e) => setNewPatient({ ...newPatient, name: e.target.value })} className="w-full bg-[#F4F7FB] border border-[#D9E3ED] px-3.5 py-2.5 rounded-xl font-semibold text-[#193B62]" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-[#193B62] mb-1">Full Name *</label>
+                  <input type="text" required placeholder="Sarah Jenkins" value={newPatient.name} onChange={(e) => setNewPatient({ ...newPatient, name: e.target.value })} className="w-full bg-[#F4F7FB] border border-[#D9E3ED] px-3 py-2 rounded-xl font-semibold text-[#193B62]" />
+                </div>
+                <div>
+                  <label className="block font-semibold text-[#193B62] mb-1">Email Address</label>
+                  <input type="email" placeholder="sarah@example.com" value={newPatient.email} onChange={(e) => setNewPatient({ ...newPatient, email: e.target.value })} className="w-full bg-[#F4F7FB] border border-[#D9E3ED] px-3 py-2 rounded-xl font-semibold text-[#193B62]" />
+                </div>
               </div>
-              <div>
-                <label className="block font-semibold text-[#193B62] mb-1">Email Address</label>
-                <input type="email" required placeholder="sarah@example.com" value={newPatient.email} onChange={(e) => setNewPatient({ ...newPatient, email: e.target.value })} className="w-full bg-[#F4F7FB] border border-[#D9E3ED] px-3.5 py-2.5 rounded-xl font-semibold text-[#193B62]" />
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-[#193B62] mb-1">Phone Number</label>
+                  <input type="text" placeholder="+1 (555) 000-0000" value={newPatient.phone} onChange={(e) => setNewPatient({ ...newPatient, phone: e.target.value })} className="w-full bg-[#F4F7FB] border border-[#D9E3ED] px-3 py-2 rounded-xl font-semibold text-[#193B62]" />
+                </div>
+                <div>
+                  <label className="block font-semibold text-[#193B62] mb-1">Gender</label>
+                  <select value={newPatient.gender} onChange={(e) => setNewPatient({ ...newPatient, gender: e.target.value })} className="w-full bg-[#F4F7FB] border border-[#D9E3ED] px-3 py-2 rounded-xl font-semibold text-[#193B62]">
+                    <option value="Female">Female</option>
+                    <option value="Male">Male</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
               </div>
-              <div>
-                <label className="block font-semibold text-[#193B62] mb-1">Condition / Injury</label>
-                <input type="text" required placeholder="ACL Reconstruction" value={newPatient.condition} onChange={(e) => setNewPatient({ ...newPatient, condition: e.target.value })} className="w-full bg-[#F4F7FB] border border-[#D9E3ED] px-3.5 py-2.5 rounded-xl font-semibold text-[#193B62]" />
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-[#193B62] mb-1">Condition / Injury *</label>
+                  <input type="text" required placeholder="ACL Reconstruction" value={newPatient.condition} onChange={(e) => setNewPatient({ ...newPatient, condition: e.target.value })} className="w-full bg-[#F4F7FB] border border-[#D9E3ED] px-3 py-2 rounded-xl font-semibold text-[#193B62]" />
+                </div>
+                <div>
+                  <label className="block font-semibold text-[#193B62] mb-1">Affected Area</label>
+                  <input type="text" placeholder="Left Knee Joint" value={newPatient.affected_area} onChange={(e) => setNewPatient({ ...newPatient, affected_area: e.target.value })} className="w-full bg-[#F4F7FB] border border-[#D9E3ED] px-3 py-2 rounded-xl font-semibold text-[#193B62]" />
+                </div>
               </div>
+
+              <div>
+                <label className="block font-semibold text-[#193B62] mb-1">Treatment Start Date</label>
+                <input type="date" value={newPatient.treatment_start} onChange={(e) => setNewPatient({ ...newPatient, treatment_start: e.target.value })} className="w-full bg-[#F4F7FB] border border-[#D9E3ED] px-3 py-2 rounded-xl font-semibold text-[#193B62]" />
+              </div>
+
               <div className="pt-4 flex justify-end gap-2 border-t border-[#D9E3ED]">
                 <button type="button" onClick={() => setShowAddModal(false)} className="px-5 py-2.5 border border-[#D9E3ED] rounded-xl font-semibold text-gray-600 hover:bg-gray-50 cursor-pointer">Cancel</button>
                 <button type="submit" className="px-6 py-2.5 bg-[#087F73] text-white rounded-xl font-bold hover:bg-[#06655c] cursor-pointer shadow-xs">Save & Register Patient</button>
