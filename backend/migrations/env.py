@@ -1,4 +1,4 @@
-﻿from logging.config import fileConfig
+from logging.config import fileConfig
 
 from alembic import context
 from sqlalchemy import create_engine, pool
@@ -18,13 +18,14 @@ if config.config_file_name is not None:
 
 # Metadata used by Alembic autogenerate.
 target_metadata = Base.metadata
+migration_database_url = settings.MIGRATION_DATABASE_URL or settings.DATABASE_URL
 
 
 def run_migrations_offline() -> None:
     """Run migrations without creating a database connection."""
 
     context.configure(
-        url=settings.DATABASE_URL,
+        url=migration_database_url,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -40,7 +41,7 @@ def run_migrations_online() -> None:
     """Run migrations using the configured database connection."""
 
     connectable = create_engine(
-        settings.DATABASE_URL,
+        migration_database_url,
         poolclass=pool.NullPool,
         pool_pre_ping=True,
     )

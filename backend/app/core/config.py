@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str = (
         "postgresql+psycopg://postgres:password@localhost:5432/movexa"
     )
+    MIGRATION_DATABASE_URL: str | None = None
 
     JWT_SECRET_KEY: str
     JWT_ALGORITHM: str = "HS256"

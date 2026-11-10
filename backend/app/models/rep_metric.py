@@ -1,4 +1,4 @@
-﻿import uuid
+import uuid
 
 from sqlalchemy import (
     CheckConstraint,
@@ -30,6 +30,10 @@ class RepMetric(Base):
         CheckConstraint(
             "rep_number > 0",
             name="ck_rep_metric_rep_number",
+        ),
+        CheckConstraint(
+            "set_number > 0",
+            name="ck_rep_metric_set_number",
         ),
         CheckConstraint(
             "assessment_status IN ('ASSESSED', 'UNABLE_TO_ASSESS')",
@@ -67,6 +71,13 @@ class RepMetric(Base):
     rep_number = Column(
         Integer,
         nullable=False,
+    )
+
+    set_number = Column(
+        Integer,
+        nullable=False,
+        default=1,
+        server_default="1",
     )
 
     assessment_status = Column(

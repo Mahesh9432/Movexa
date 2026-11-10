@@ -1,4 +1,4 @@
-﻿import uuid
+import uuid
 
 from sqlalchemy import (
     Boolean,
@@ -65,6 +65,11 @@ class Exercise(Base):
 
     instructions = Column(
         Text,
+        nullable=True,
+    )
+
+    video_url = Column(
+        String(500),
         nullable=True,
     )
 
