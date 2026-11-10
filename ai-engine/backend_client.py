@@ -56,7 +56,7 @@ class MovexaBackendClient:
 
         base_url = os.getenv(
             "MOVEXA_API_BASE_URL",
-            "http://127.0.0.1:8000",
+            "http://127.0.0.1:8765",
         )
         session_id = os.getenv("MOVEXA_SESSION_ID")
         access_token = os.getenv("MOVEXA_ACCESS_TOKEN")

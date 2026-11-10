@@ -26,4 +26,5 @@ async def test_connection():
         print(response)
 
 
-asyncio.run(test_connection())
+if __name__ == "__main__":
+    asyncio.run(test_connection())
