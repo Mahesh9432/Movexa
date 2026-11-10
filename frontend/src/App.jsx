@@ -93,7 +93,7 @@ export default function App() {
     isAuthenticated && !isAllowedAuthenticatedView;
 
   const shouldShowLoginFallback =
-    !isAuthenticated && currentView !== "register";
+    !isAuthenticated && currentView !== "register" && currentView !== "login";
 
   return (
     <div className="min-h-screen bg-[#F4F7FB]">
