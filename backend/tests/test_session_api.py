@@ -257,6 +257,9 @@ def test_patient_can_sync_own_session(
         lambda db, user: records.patient,
     )
 
+    records.session.status = "COMPLETED"
+    records.session.completed_at = records.now
+
     synced = SimpleNamespace(**{
         **vars(records.session),
         "synced_at": records.now,
@@ -336,3 +339,31 @@ def test_physiotherapist_cannot_create_session(
     )
 
     assert response.status_code == 403
+
+
+def test_patient_cannot_sync_in_progress_session_without_body(
+    client, db, records, monkeypatch
+):
+    from app.api import sessions
+
+    authenticate(records.patient_user)
+    monkeypatch.setattr(
+        sessions, "get_session",
+        lambda db, session_id: records.session,
+    )
+    monkeypatch.setattr(
+        sessions, "_get_patient",
+        lambda db, user: records.patient,
+    )
+    monkeypatch.setattr(
+        sessions, "mark_session_synced",
+        lambda db, session_id: pytest.fail(
+            "Active session must not be marked as synced"
+        ),
+    )
+
+    response = client.post(
+        f"/api/sessions/{records.session.id}/sync"
+    )
+
+    assert response.status_code == 409

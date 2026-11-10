@@ -164,6 +164,15 @@ def mark_session_synced(
 ) -> RehabSession:
     session = get_session(db, session_id)
 
+    if session.status not in {
+        "COMPLETED",
+        "INCOMPLETE",
+        "UNABLE_TO_ASSESS",
+    }:
+        raise InvalidSessionOperationError(
+            "Only a terminal session can be marked as synced."
+        )
+
     if session.synced_at is None:
         session.synced_at = datetime.now(timezone.utc)
 

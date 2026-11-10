@@ -8,13 +8,16 @@ from app.api.dependencies import get_current_user, require_role
 from app.database.connection import get_db
 from app.models.patient import Patient
 from app.models.physiotherapist import Physiotherapist
-from app.models.patient_therapist_assignment import PatientTherapistAssignment
+from app.models.patient_therapist_assignment import (
+    PatientTherapistAssignment,
+)
 from app.models.user import User
 from app.schemas.rehab_session import (
     RehabSessionCreate,
     RehabSessionFinish,
     RehabSessionResponse,
 )
+from app.schemas.rep_metric import OfflineSessionSyncRequest
 from app.services.rehab_session_service import (
     InvalidSessionOperationError,
     SessionConflictError,
@@ -23,6 +26,11 @@ from app.services.rehab_session_service import (
     get_session,
     mark_session_synced,
     start_session,
+)
+from app.services.rep_metric_service import (
+    DuplicateRepMetricError,
+    InvalidMetricsSessionError,
+    sync_session_metrics,
 )
 
 
@@ -93,7 +101,8 @@ def _get_owned_session(
         assignment = (
             db.query(PatientTherapistAssignment)
             .filter(
-                PatientTherapistAssignment.patient_id == session.patient_id,
+                PatientTherapistAssignment.patient_id
+                == session.patient_id,
                 PatientTherapistAssignment.physiotherapist_id
                 == physiotherapist.id,
                 PatientTherapistAssignment.status == "ACTIVE",
@@ -189,12 +198,37 @@ def complete_session(
 )
 def sync_session(
     session_id: UUID,
+    data: OfflineSessionSyncRequest | None = None,
     current_user: User = Depends(require_role("PATIENT")),
     db: Session = Depends(get_db),
 ):
     session = _get_owned_session(db, session_id, current_user)
 
+    # Backward compatibility for clients that still send no request body.
+    # New offline clients must send repetitions_data.
+    if data is None:
+        if session.status == "IN_PROGRESS":
+            raise HTTPException(
+                status_code=409,
+                detail="Only a terminal session can be marked as synced.",
+            )
+
+        try:
+            return mark_session_synced(db, session.id)
+        except SessionNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc))
+        except InvalidSessionOperationError as exc:
+            raise HTTPException(status_code=409, detail=str(exc))
+
     try:
-        return mark_session_synced(db, session.id)
+        return sync_session_metrics(
+            db,
+            session,
+            data.repetitions_data,
+        )
+    except DuplicateRepMetricError as exc:
+        raise HTTPException(status_code=409, detail=str(exc))
+    except InvalidMetricsSessionError as exc:
+        raise HTTPException(status_code=409, detail=str(exc))
     except SessionNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc))

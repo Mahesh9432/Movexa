@@ -287,7 +287,14 @@ def get_physiotherapist_dashboard(db: Session, user: User) -> dict:
     if patient_ids:
         sessions = (
             db.query(RehabSession)
-            .filter(RehabSession.patient_id.in_(patient_ids))
+            .join(
+                Prescription,
+                RehabSession.prescription_id == Prescription.id,
+            )
+            .filter(
+                RehabSession.patient_id.in_(patient_ids),
+                Prescription.physiotherapist_id == physiotherapist.id,
+            )
             .order_by(RehabSession.started_at.desc())
             .all()
         )
@@ -429,7 +436,14 @@ def get_physiotherapist_patients(
 
     sessions = (
         db.query(RehabSession)
-        .filter(RehabSession.patient_id.in_(patient_ids))
+        .join(
+            Prescription,
+            RehabSession.prescription_id == Prescription.id,
+        )
+        .filter(
+            RehabSession.patient_id.in_(patient_ids),
+            Prescription.physiotherapist_id == physiotherapist.id,
+        )
         .order_by(RehabSession.started_at.desc())
         .all()
     )
@@ -523,7 +537,14 @@ def get_patient_progress(
 
     sessions = (
         db.query(RehabSession)
-        .filter(RehabSession.patient_id == patient.id)
+        .join(
+            Prescription,
+            RehabSession.prescription_id == Prescription.id,
+        )
+        .filter(
+            RehabSession.patient_id == patient.id,
+            Prescription.physiotherapist_id == physiotherapist.id,
+        )
         .order_by(RehabSession.started_at.desc())
         .all()
     )
